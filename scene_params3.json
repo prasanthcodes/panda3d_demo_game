@@ -1,0 +1,483 @@
+[
+    {
+        "enable": true,
+        "show": true,
+        "uniquename": "ground_metal",
+        "filename": "sci_models/ground_metal/ground_metal.gltf",
+        "pos": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "ground",
+        "notes": "",
+        "shader_name": "",
+        "pickable": [
+            true,
+            ""
+        ],
+        "plights": [
+            {
+                "name": "1",
+                "pos": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                "attenuation": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "slights": []
+    },
+    {
+        "uniquename": "sci_models_Futuristic_combat_jet_Futuristic_combat_jet.gltf 2025-03-26T15:02:23",
+        "filename": "sci_models/Futuristic_combat_jet/Futuristic_combat_jet.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                11.53228759765625,
+                58.76611328125,
+                -0.06439208984375
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Drone_2fan_fly_Anim_Drone_2fan_fly_Anim.gltf 2025-03-26T15:36:38",
+        "filename": "sci_models/Drone_2fan_fly_Anim/Drone_2fan_fly_Anim.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                23.29669189453125,
+                45.95166015625,
+                7.94854736328125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                3.05902099609375,
+                3.05902099609375,
+                3.05902099609375
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Transport_Shuttle_Transport_Shuttle.gltf 2025-03-26T15:55:29",
+        "filename": "sci_models/Transport_Shuttle/Transport_Shuttle.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                37.310791015625,
+                55.6234130859375,
+                0.11383056640625
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                90.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Satellite_dish_anim_L_Satellite_dish_anim_L.gltf 2025-03-26T16:08:07",
+        "filename": "sci_models/Satellite_dish_anim_L/Satellite_dish_anim_L.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                55.5859375,
+                95.6907958984375,
+                0.086669921875
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.8211669921875,
+                1.8211669921875,
+                1.8211669921875
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Mercury_1K_Mercury_1K.gltf 2025-03-26T16:41:46",
+        "filename": "sci_models/Mercury_1K/Mercury_1K.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -16.20758056640625,
+                628.8525390625,
+                90.0078125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                100.0,
+                100.0,
+                100.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Robot_1_Robot_1.gltf 2025-03-26T17:22:37",
+        "filename": "sci_models/Robot_1/Robot_1.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                1.93414306640625,
+                64.8536376953125,
+                0.049560546875
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                3.413330078125,
+                3.413330078125,
+                3.413330078125
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Bunker_1_Bunker_1.gltf 2025-03-27T09:23:38",
+        "filename": "sci_models/Bunker_1/Bunker_1.gltf",
+        "enable": false,
+        "show": true,
+        "pos": [
+            true,
+            [
+                83.5899658203125,
+                82.864501953125,
+                0.0059814453125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_sci_fi_blocks_3builds_sci_fi_blocks_3builds.gltf 2025-03-27T13:01:33",
+        "filename": "sci_models/sci_fi_blocks_3builds/sci_fi_blocks_3builds.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                69.1435546875,
+                -17.3695068359375,
+                0.062255859375
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                90.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Mega_Structure_T_shape_scifi_1_Mega_Structure_T_shape_scifi_1.gltf 2025-03-27T13:07:57",
+        "filename": "sci_models/Mega_Structure_T_shape_scifi_1/Mega_Structure_T_shape_scifi_1.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -75.0440673828125,
+                12.9248046875,
+                -0.01495361328125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                0.218994140625,
+                0.218994140625,
+                0.218994140625
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    }
+]
