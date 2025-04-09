@@ -2,7 +2,7 @@
 
 ## This is a short 3d game in panda3d. move using wasd keys, f to punch.
 
-![Screenshot of window](Screenshot.jpg)
+![Screenshot of window](screenshot.jpg)
 
 Music by Eric Matyas
 www.soundimage.org
