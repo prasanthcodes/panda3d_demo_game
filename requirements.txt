@@ -1,0 +1,7 @@
+# panda3d 1.10.14
+# python 3.10
+
+
+Panda3D
+panda3d-gltf
+panda3d-simplepbr

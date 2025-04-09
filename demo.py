@@ -81,7 +81,7 @@ class LookingDemo(ShowBase):
         #---adjustable parameters---
         self.mouse_sensitivity=50
         self.move_speed=0.2
-        self.scene_data_filename='scene_params3.json'
+        self.scene_data_filename='sci_models/scene_params3.json'
 
         # Camera param initializations
         self.cameraHeight = 1.5     # camera Height above ground
@@ -92,6 +92,9 @@ class LookingDemo(ShowBase):
         self.camera.setPos(0,0,1)
         
         self.first_person_view_flag=True#True,False
+        self.bottom_cam_label=DirectLabel(text='CamPos: ',pos=(-1,1,-0.9),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
+        self.bottom_cam_label.setText('press f to punch')
+
         
         self.set_keymap()
         self.load_environment_models()
@@ -142,12 +145,12 @@ class LookingDemo(ShowBase):
         self.run_count = 0  # Track number of runs
         self.max_runs = 100   # Stop after 3 runs (15 seconds total)
         self.robot_1=self.models_all[self.models_names_all.index('sci_models_Robot_1')]
-        taskMgr.doMethodLater(1, self.anim_seq_4_chase, "anim_seq_4_chase")
+        #taskMgr.doMethodLater(1, self.anim_seq_4_chase, "anim_seq_4_chase")
         self.event_1_finished=False
-        mySound1 = base.loader.loadSfx("Uncertain-Future.mp3")
-        mySound2 = base.loader.loadSfx("Dark-Future-Theme.mp3")
-        mySound1.setLoop(True)
-        mySound1.play()
+        self.mySound1 = base.loader.loadSfx("sci_models/Uncertain-Future.mp3")
+        self.mySound2 = base.loader.loadSfx("sci_models/Dark-Future-Theme.mp3")
+        self.mySound1.setLoop(True)
+        self.mySound1.play()
         
 
     def startAnimation(self):
@@ -186,17 +189,17 @@ class LookingDemo(ShowBase):
         # Let's create a texture named "world_cube_map" and configure it.
         texture_cube_map = Texture("world_cube_map")
         texture_cube_map.setup_cube_map()
-        texture_cube_map.read(fullpath = 'right.jpg',  z = 0, n = 0, read_pages = False, read_mipmaps = False, options = lo)
-        texture_cube_map.read(fullpath = 'left.jpg',   z = 1, n = 0, read_pages = False, read_mipmaps = False, options = lo)
-        texture_cube_map.read(fullpath = 'bottom.jpg', z = 2, n = 0, read_pages = False, read_mipmaps = False, options = lo)
-        texture_cube_map.read(fullpath = 'top.jpg',    z = 3, n = 0, read_pages = False, read_mipmaps = False, options = lo)
-        texture_cube_map.read(fullpath = 'front.jpg',  z = 4, n = 0, read_pages = False, read_mipmaps = False, options = lo)
-        texture_cube_map.read(fullpath = 'back.jpg',   z = 5, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/right.jpg',  z = 0, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/left.jpg',   z = 1, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/bottom.jpg', z = 2, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/top.jpg',    z = 3, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/front.jpg',  z = 4, n = 0, read_pages = False, read_mipmaps = False, options = lo)
+        texture_cube_map.read(fullpath = 'sci_models/back.jpg',   z = 5, n = 0, read_pages = False, read_mipmaps = False, options = lo)
 
         # You can add texture to the pool if you need to.
         TexturePool.add_texture(texture_cube_map)
 
-        skybox = loader.load_model('sphere.bam')
+        skybox = loader.load_model('sci_models/sphere.bam')
         skybox.reparentTo(self.render)
         skybox.set_texture(texture_cube_map)
         
@@ -336,7 +339,7 @@ class LookingDemo(ShowBase):
         cm = CardMaker('card')
         card = self.render.attachNewNode(cm.generate())
         card.setBillboardPointEye()
-        card.setTexture(loader.loadTexture('flare5.png'))
+        card.setTexture(loader.loadTexture('sci_models/flare5.png'))
         #card.setColor(color)
         card.setPos(0,-1200,90)
         card.setScale(150)
@@ -347,7 +350,7 @@ class LookingDemo(ShowBase):
 
         self.dlight1.node().get_lens().set_film_size(250, 250)
         self.dlight1.node().get_lens().setNearFar(1, 150)
-        self.dlight1.node().show_frustum()
+        #self.dlight1.node().show_frustum()
         self.render.setLight(self.dlight1)
         self.filter_lens_flare()
         #self.Filters.setVolumetricLighting(self.dlight1 )#32, 5.0, 0.1, 0.1                                 
@@ -401,17 +404,17 @@ class LookingDemo(ShowBase):
         finalquad = manager.renderSceneInto(colortex=tex1)
         # First step - threshold and radial blur
         interquad = manager.renderQuadInto(colortex=tex2)
-        interquad.setShader(Shader.load("invert_threshold_r_blur.sha"))
+        interquad.setShader(Shader.load("sci_models/invert_threshold_r_blur.sha"))
         interquad.setShaderInput("tex1", tex1)
         interquad.setShaderInput("threshold", threshold)
         # Second step - hardcoded fast gaussian blur. 
         # Not very important. This step can be omitted to improve performance
         # with some minor changes in lens_flare.sha
         interquad2 = manager.renderQuadInto(colortex=tex3)
-        interquad2.setShader(Shader.load("gaussian_blur.sha"))
+        interquad2.setShader(Shader.load("sci_models/gaussian_blur.sha"))
         interquad2.setShaderInput("tex2", tex2)
         # Final - Make lens flare and blend it with the main scene picture
-        finalquad.setShader(Shader.load("lens_flare.sha"))
+        finalquad.setShader(Shader.load("sci_models/lens_flare.sha"))
         finalquad.setShaderInput("tex1", tex1)
         finalquad.setShaderInput("tex2", tex2)
         finalquad.setShaderInput("tex3", tex3)
@@ -422,32 +425,29 @@ class LookingDemo(ShowBase):
     def actor_rotate(self,task):
         # Check to make sure the mouse is readable
         if self.mouseWatcherNode.hasMouse():
-            if self.keyMap['right_click']==True:
-                # get the mouse position as a LVector2. The values for each axis are from -1 to
-                # 1. The top-left is (-1,-1), the bottom right is (1,1)
-                mpos = self.mouseWatcherNode.getMouse()
-                mouse = self.win.getPointer(0)
-                mx, my = mouse.getX(), mouse.getY()
-                # Reset mouse to center to prevent edge stopping
-                self.win.movePointer(0, int(800 / 2), int(600 / 2))
-                #self.win.movePointer(0, int(self.win.getXSize() / 2), int(self.win.getYSize() / 2))
+            #if self.keyMap['right_click']==True:
+            mpos = self.mouseWatcherNode.getMouse()
+            mouse = self.win.getPointer(0)
+            mx, my = mouse.getX(), mouse.getY()
+            # Reset mouse to center to prevent edge stopping
+            self.win.movePointer(0, int(800 / 2), int(600 / 2))
+            #self.win.movePointer(0, int(self.win.getXSize() / 2), int(self.win.getYSize() / 2))
 
-                # Calculate mouse delta
-                dx = mx - 800 / 2
-                dy = my - 600 / 2
+            # Calculate mouse delta
+            dx = mx - 800 / 2
+            dy = my - 600 / 2
 
-                # Update camera angles based on mouse movement
-                self.cameraAngleH -= dx * self.mouse_sensitivity * globalClock.getDt()
-                self.cameraAngleP -= dy * self.mouse_sensitivity * globalClock.getDt()
+            # Update camera angles based on mouse movement
+            self.cameraAngleH -= dx * self.mouse_sensitivity * globalClock.getDt()
+            self.cameraAngleP -= dy * self.mouse_sensitivity * globalClock.getDt()
 
-                # Clamp pitch to avoid flipping
-                self.cameraAngleP = max(-90, min(90, self.cameraAngleP))
-                
-                #self.camera.setPos(camX, camY, camZ)
-                #self.camera.setHpr(self.cameraAngleH, self.cameraAngleP, 0)
-                self.actor_0.setH(self.cameraAngleH)
-                
-                self.camera.setP(self.cameraAngleP)
+            # Clamp pitch to avoid flipping
+            self.cameraAngleP = max(-90, min(90, self.cameraAngleP))
+            
+            #self.camera.setPos(camX, camY, camZ)
+            #self.camera.setHpr(self.cameraAngleH, self.cameraAngleP, 0)
+            self.actor_0.setH(self.cameraAngleH)
+            self.camera.setP(self.cameraAngleP)
 
         return Task.cont  # Task continues infinitely
     
@@ -576,13 +576,14 @@ class LookingDemo(ShowBase):
             taskMgr.doMethodLater(22, self.anim_seq_3_remove, 'anim_seq_3_remove')
             
             taskMgr.doMethodLater(25, temp_func_1c, 'temp_func_1c',extraArgs=[self.set_keymap])
+            taskMgr.doMethodLater(25, self.anim_seq_4_chase, "anim_seq_4_chase")
             taskMgr.doMethodLater(55, temp_func_3, 'temp_func_3')
             
             self.event_1_finished=True
-            mySound1.setLoop(False)
-            mySound1.stop()
-            mySound2.setLoop(True)
-            mySound2.play()
+            self.mySound1.setLoop(False)
+            self.mySound1.stop()
+            self.mySound2.setLoop(True)
+            self.mySound2.play()
         
         
     def schedule_task(self,model):
@@ -624,10 +625,10 @@ class LookingDemo(ShowBase):
         pos2=self.actor_0.getPos()
         self.robot_1.lookAt(self.actor_0)
         self.robot_1.setH(self.robot_1.getH()+180)
-        if pos[0]<pos2[0]: pos[0]=pos[0]+0.1
-        if pos[0]>pos2[0]: pos[0]=pos[0]-0.1
-        if pos[1]<pos2[1]: pos[1]=pos[1]+0.1
-        if pos[1]>pos2[1]: pos[1]=pos[1]-0.1
+        if pos[0]<pos2[0]: pos[0]=pos[0]+0.15
+        if pos[0]>pos2[0]: pos[0]=pos[0]-0.15
+        if pos[1]<pos2[1]: pos[1]=pos[1]+0.15
+        if pos[1]>pos2[1]: pos[1]=pos[1]-0.15
         self.robot_1.setPos(pos)
         dist=math.sqrt(abs(pos[0]-pos2[0])**2+abs(pos[1]-pos2[1])**2)
         if dist<2:
