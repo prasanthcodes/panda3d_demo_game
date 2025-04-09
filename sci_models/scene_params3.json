@@ -1,0 +1,491 @@
+[
+    {
+        "enable": true,
+        "show": true,
+        "uniquename": "ground_metal",
+        "filename": "sci_models/ground_metal/ground_metal.gltf",
+        "pos": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.00006103515625,
+                1.00006103515625,
+                1.00006103515625
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "ground",
+        "notes": "",
+        "shader_name": "",
+        "pickable": [
+            true,
+            ""
+        ],
+        "plights": [
+            {
+                "name": "1",
+                "pos": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                "color": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                "attenuation": [
+                    true,
+                    [
+                        0,
+                        0,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "slights": []
+    },
+    {
+        "uniquename": "sci_models_Futuristic_combat_jet",
+        "filename": "sci_models/Futuristic_combat_jet/Futuristic_combat_jet.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                11.5322265625,
+                58.765625,
+                -0.064453125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Transport_Shuttle",
+        "filename": "sci_models/Transport_Shuttle/Transport_Shuttle.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                37.310546875,
+                55.623046875,
+                0.1142578125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                90.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Mercury_1K",
+        "filename": "sci_models/Mercury_1K/Mercury_1K.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -16.4140625,
+                1000.0,
+                157.4365234375
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                300.0,
+                300.0,
+                300.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_Robot_1",
+        "filename": "sci_models/Robot_1/Robot_1.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                1.9345703125,
+                64.853515625,
+                0.0498046875
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                3.413330078125,
+                3.413330078125,
+                3.413330078125
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_sci_fi_blocks_3",
+        "filename": "sci_models/sci_fi_blocks_3builds/sci_fi_blocks_3builds.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                69.1435546875,
+                -17.3695068359375,
+                0.062255859375
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                90.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "Mega_Structure_T_shape",
+        "filename": "sci_models/Mega_Structure_T_shape_scifi_1/Mega_Structure_T_shape_scifi_1.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -73.0751953125,
+                73.46484375,
+                -0.0927734375
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                0.10882568359375,
+                0.10882568359375,
+                0.10882568359375
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                90.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models_pot_plant_1",
+        "filename": "sci_models/pot_plant_1/pot_plant_1.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -73.39404296875,
+                74.1162109375,
+                0.80621337890625
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                0.45928955078125,
+                0.45928955078125,
+                0.45928955078125
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models2_sign_dont_destroy",
+        "filename": "sci_models/sign_dont_destroy.glb",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -73.03033447265625,
+                74.1531982421875,
+                0.4893798828125
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                0.31915283203125,
+                0.31915283203125,
+                0.31915283203125
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                321.8824157714844
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ]
+    },
+    {
+        "uniquename": "sci_models2_planet_earth",
+        "filename": "sci_models/planet_earth/planet_earth.gltf",
+        "enable": true,
+        "show": true,
+        "pos": [
+            true,
+            [
+                -1123.5234375,
+                1000.0,
+                284.2978515625
+            ]
+        ],
+        "scale": [
+            true,
+            [
+                30.0,
+                30.0,
+                30.0
+            ]
+        ],
+        "color": [
+            true,
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+        ],
+        "hpr": [
+            true,
+            [
+                0.0,
+                0.0,
+                0.0
+            ]
+        ],
+        "details": "",
+        "notes": "",
+        "pickable": [
+            true,
+            ""
+        ],
+        "load_pointlights_from_model": [
+            false,
+            ""
+        ],
+        "load_lights_from_json": [
+            true,
+            ""
+        ]
+    }
+]
