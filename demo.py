@@ -5,45 +5,31 @@ from panda3d.core import TextNode, NodePath, LightAttrib
 from panda3d.core import LVector3
 from direct.actor.Actor import Actor
 from direct.task.Task import Task
-from direct.gui.OnscreenText import OnscreenText
-from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import *
 from panda3d.core import Texture, TexturePool, LoaderOptions, TextureStage, TexGenAttrib, TransformState
 from direct.filter.FilterManager import FilterManager
-
-from panda3d.core import LRotation
-from panda3d.core import Mat4
 import random
-
 
 import sys
 import os
-import shutil
 import math
 from direct.filter.CommonFilters import CommonFilters
 from panda3d.core import ClockObject
 
 from panda3d.core import *
 from panda3d.core import SamplerState
-import tkinter
-from tkinter.filedialog import askopenfilename
-from tkinter import messagebox
-import tkinter as tk
 
 import simplepbr
 import gltf
-
 import json
-import datetime
-import time
 
 
 panda3d.core.load_prc_file_data("", """
     textures-power-2 none
     gl-coordinate-system default
     filled-wireframe-apply-shader true
-    #cursor-hidden true
+    cursor-hidden true
     
     # As an optimization, set this to the maximum number of cameras
     # or lights that will be rendering the terrain at any given time.
@@ -65,7 +51,7 @@ panda3d.core.load_prc_file_data('', 'show-frame-rate-meter true')
 loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "gl-version 3 2")
 #loadPrcFileData("", "notify-level-glgsg debug")       
-#loadPrcFileData("", "win-size 1920 1080")
+loadPrcFileData("", "win-size 1920 1080")
 #loadPrcFileData("", "fullscreen t")
                                   
 class LookingDemo(ShowBase):
@@ -77,7 +63,7 @@ class LookingDemo(ShowBase):
         
         self.FilterManager_1 = FilterManager(base.win, base.cam)
         self.Filters=CommonFilters(base.win, base.cam)                                       
-        self.pipeline = simplepbr.init(use_normal_maps=True,exposure=0.8,sdr_lut_factor=0,max_lights=16)
+        self.pipeline = simplepbr.init(use_normal_maps=True,exposure=0.8,sdr_lut_factor=0,max_lights=8)
         #---adjustable parameters---
         self.mouse_sensitivity=50
         self.move_speed=0.2
@@ -289,7 +275,7 @@ class LookingDemo(ShowBase):
                 self.models_all.append("")
 
     def set_keymap(self):
-        self.keyMap = {"move_forward": 0, "move_backward": 0, "move_left": 0, "move_right": 0,"gravity_on":1,"load_model":0,"set_camera_pos":0,"x_increase":0,"x_decrease":0,"y_increase":0,"y_decrease":0,"z_increase":0,"z_decrease":0,"right_click":0,"switch_model":0,"delete_model":0,"up_arrow":0,"down_arrow":0,"right_arrow":0,"left_arrow":0,"look_at":0,"show_gui":1,"punch":0}
+        self.keyMap = {"move_forward": 0, "move_backward": 0, "move_left": 0, "move_right": 0,"gravity_on":1,"right_click":0,"punch":0}
         self.accept('escape', sys.exit)
         self.accept("w", self.setKey, ["move_forward", True])
         self.accept("s", self.setKey, ["move_backward", True])
@@ -545,7 +531,7 @@ class LookingDemo(ShowBase):
         def temp_func_1d(actor):
             # stop the actor movement and look at robot
             self.robot_1.setH(-90)
-            self.robot_1.setY(self.robot_1.getY()+10)
+            self.robot_1.setY(self.robot_1.getY()+8)
             actor.lookAt(self.robot_1)
             self.camera.setP(0)
 
@@ -600,8 +586,8 @@ class LookingDemo(ShowBase):
         taskMgr.doMethodLater(0.5, interval_task, "IntervalTask",extraArgs=[model])
         
     def anim_seq_1(self,task):
-        posY=self.actor_0.getX()
-        self.actor_0.setX(posY+0.03)
+        posX=self.actor_0.getX()
+        self.actor_0.setX(posX+0.03)
         self.robot_1.setX(self.robot_1.getX()-0.01)
         return Task.cont
     def anim_seq_1_remove(self,task):
