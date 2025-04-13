@@ -67,7 +67,11 @@ class LookingDemo(ShowBase):
         #---adjustable parameters---
         self.mouse_sensitivity=50
         self.move_speed=0.2
-        self.scene_data_filename='sci_models/scene_params3.json'
+
+        
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        json_file = os.path.join(base_path, 'sci_models', 'scene_params3.json') # Sets absolute file path to avoid file not found errors
+        self.scene_data_filename= json_file
 
         # Camera param initializations
         self.cameraHeight = 1.5     # camera Height above ground
