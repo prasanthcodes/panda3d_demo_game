@@ -529,6 +529,10 @@ class LookingDemo(ShowBase):
             pot_plant.setColorScale(1,0,0,1)
         def temp_func_1b(self):
             self.ignoreAll()
+            self.keyMap['move_forward'] = False
+            self.keyMap['move_backward'] = False
+            self.keyMap['move_left'] = False
+            self.keyMap['move_right'] = False
             self.accept('escape', sys.exit)
         def temp_func_1c(func):
             func()
@@ -625,7 +629,7 @@ class LookingDemo(ShowBase):
             taskMgr.remove('anim_seq_4_chase')
             print('you lose')
             self.show_info_gui_box('You Lose')
-        if task.time >= 5*60:  # 5 minutes
+        if task.time >= 2*60:  # 2 minutes
             print('you win')
             self.show_info_gui_box('You Win!')
             return Task.done  # Stops the task
