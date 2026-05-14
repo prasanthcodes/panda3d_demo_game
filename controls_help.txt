@@ -1,0 +1,10 @@
+
+w - move forward
+s - move backward
+a - move left
+d - move right
+
+f - punch
+v - switch camera view
+space - jump, skip cut scene
+Esc - exit the program

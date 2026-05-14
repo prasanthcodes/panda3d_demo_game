@@ -3,7 +3,7 @@
         "enable": true,
         "show": true,
         "uniquename": "ground_metal",
-        "filename": "sci_models/ground_metal/ground_metal.gltf",
+        "filename": "sci_models/ground_metal/ground_metal.bam",
         "pos": [
             true,
             [
@@ -77,7 +77,7 @@
     },
     {
         "uniquename": "sci_models_Futuristic_combat_jet",
-        "filename": "sci_models/Futuristic_combat_jet/Futuristic_combat_jet.gltf",
+        "filename": "sci_models/Futuristic_combat_jet/Futuristic_combat_jet.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -85,7 +85,7 @@
             [
                 11.5322265625,
                 58.765625,
-                -0.064453125
+                -0.9
             ]
         ],
         "scale": [
@@ -122,7 +122,7 @@
     },
     {
         "uniquename": "sci_models_Transport_Shuttle",
-        "filename": "sci_models/Transport_Shuttle/Transport_Shuttle.gltf",
+        "filename": "sci_models/Transport_Shuttle/Transport_Shuttle.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -130,7 +130,7 @@
             [
                 37.310546875,
                 55.623046875,
-                0.1142578125
+                -0.9
             ]
         ],
         "scale": [
@@ -167,7 +167,7 @@
     },
     {
         "uniquename": "sci_models_Mercury_1K",
-        "filename": "sci_models/Mercury_1K/Mercury_1K.gltf",
+        "filename": "sci_models/Mercury_1K/Mercury_1K.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -220,15 +220,15 @@
             [
                 1.9345703125,
                 64.853515625,
-                0.0498046875
+                -0.9
             ]
         ],
         "scale": [
             true,
             [
-                3.413330078125,
-                3.413330078125,
-                3.413330078125
+                5,
+                5,
+                5
             ]
         ],
         "color": [
@@ -257,7 +257,7 @@
     },
     {
         "uniquename": "sci_models_sci_fi_blocks_3",
-        "filename": "sci_models/sci_fi_blocks_3builds/sci_fi_blocks_3builds.gltf",
+        "filename": "sci_models/sci_fi_blocks_3builds/sci_fi_blocks_3builds.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -265,7 +265,7 @@
             [
                 69.1435546875,
                 -17.3695068359375,
-                0.062255859375
+                -0.9
             ]
         ],
         "scale": [
@@ -302,7 +302,7 @@
     },
     {
         "uniquename": "Mega_Structure_T_shape",
-        "filename": "sci_models/Mega_Structure_T_shape_scifi_1/Mega_Structure_T_shape_scifi_1.gltf",
+        "filename": "sci_models/Mega_Structure_T_shape_scifi_1/Mega_Structure_T_shape_scifi_1.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -310,7 +310,7 @@
             [
                 -73.0751953125,
                 73.46484375,
-                -0.0927734375
+                -0.9
             ]
         ],
         "scale": [
@@ -347,7 +347,7 @@
     },
     {
         "uniquename": "sci_models_pot_plant_1",
-        "filename": "sci_models/pot_plant_1/pot_plant_1.gltf",
+        "filename": "sci_models/pot_plant_1/pot_plant_1.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -355,7 +355,7 @@
             [
                 -73.39404296875,
                 74.1162109375,
-                0.80621337890625
+                0
             ]
         ],
         "scale": [
@@ -392,7 +392,7 @@
     },
     {
         "uniquename": "sci_models2_sign_dont_destroy",
-        "filename": "sci_models/sign_dont_destroy.glb",
+        "filename": "sci_models/sign_dont_destroy.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -400,7 +400,7 @@
             [
                 -73.03033447265625,
                 74.1531982421875,
-                0.4893798828125
+                0
             ]
         ],
         "scale": [
@@ -437,7 +437,7 @@
     },
     {
         "uniquename": "sci_models2_planet_earth",
-        "filename": "sci_models/planet_earth/planet_earth.gltf",
+        "filename": "sci_models/planet_earth/planet_earth.bam",
         "enable": true,
         "show": true,
         "pos": [
