@@ -53,11 +53,154 @@ panda3d.core.load_prc_file_data('', 'show-frame-rate-meter true')
 loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "gl-version 3 2")
 #loadPrcFileData("", "notify-level-glgsg debug")       
-loadPrcFileData("", "win-size 1920 1080")
+#loadPrcFileData("", "win-size 1920 1080")
 #loadPrcFileData("", "fullscreen t")
 
+class Player():
+    def __init__(self, base, render, world, loader, camera):
+        self.base = base
+        self.render = render
+        self.world = world
+        self.loader = loader
+        self.camera = camera
+        
+        # --- initialize CharacterController ---
+        self.spawn_point=(0,0,0)
+        self.prev_velocity = Vec3(0, 0, 0)
+        radius=0.15
+        height=1.5
+        playerShape = BulletCapsuleShape(radius, height, ZUp)
+        self.PlayerController = BulletCharacterControllerNode(playerShape, 1, "PlayerMain")
+        #self.PlayerMain.setPos(self.spawn_point)
+        #self.world.attachCharacter(self.PlayerController)
+        self.PlayerController.setJumpSpeed(2.0)
+        #self.PlayerController.setMaxSlope(60.0)
+        #self.PlayerController.setMaxJumpHeight(3.0)
+        
+        # --- load the player model and set collisions ---
+        model_path = loader.load_model('sci_models/astronaut.glb')
+        #model_path.setH(180)
+        self.PlayerActor = Actor(model_path)
+        self.PlayerActor.setScale(1.5)
+        self.PlayerActor.setPos(0,0,-1.8)
+        self.PlayerActor.setH(180)
+        self.PlayerMain = self.render.attachNewNode(self.PlayerController)
+        self.world.attachCharacter(self.PlayerController)
+        #self.PlayerActor.setPos(0,0,1)
+        self.PlayerActor.reparent_to(self.PlayerMain)
+        
+        self.first_person_view_NP = self.PlayerMain.attachNewNode('first_person_view')
+        self.first_person_view_NP.setPos(0,0.45,-0.65)#0,0.35,-0.65
+        self.camera.reparentTo(self.first_person_view_NP)
+        self.third_person_view_NP = self.PlayerMain.attachNewNode('third_person_view')
+        self.third_person_view_NP.setPos(0,-4,-0.1)#0,-2,-0.1
+        self.camera_view=0
+        
+        #self.camera.reparentTo(self.third_person_view_NP)
+        self.PlayerMain.setPos(self.spawn_point)#actor starting position
+        
+        # --- set player animations ---
+        self.player_anim_walking = self.PlayerActor.getAnimControl('Walking')
+        self.player_anim_boxing = self.PlayerActor.getAnimControl('Boxing_Practice')
+        self.player_anim_running = self.PlayerActor.getAnimControl('Running')
+        self.player_anim_behit = self.PlayerActor.getAnimControl('BeHit_FlyUp')
+        self.player_anim_dead = self.PlayerActor.getAnimControl('Dead')
+        self.player_anim_arise = self.PlayerActor.getAnimControl('Arise')
+        self.player_anim_attack = self.PlayerActor.getAnimControl('Skill_03') #(one hand slice attack with rotation)
+        
+    def toggle_camera_view(self):
+        self.camera_view = (self.camera_view + 1) % 2
+        if self.camera_view == 0:
+            self.camera.reparentTo(self.first_person_view_NP)
+        else:
+            self.camera.reparentTo(self.third_person_view_NP)
+            
+    def start_attack(self):
+        self.PlayerActor.setPos(1,0.1,-1.8)
+        self.player_anim_boxing.play()
+
+    def stop_attack(self):
+        if self.player_anim_boxing.isPlaying():
+            self.player_anim_boxing.stop()
+            self.PlayerActor.setPos(0,0,-1.8)
+
+    def start_walk(self):
+        if not self.player_anim_walking.isPlaying():
+            self.player_anim_walking.loop(0)
+            self.PlayerActor.setPos(0,0,-1.8)
+
+    def stop_walk(self):
+        if self.player_anim_walking.isPlaying():
+            self.player_anim_walking.stop()
+            
+    def jump(self):
+        if self.PlayerController.isOnGround():
+            self.PlayerController.doJump()
+
+    def take_damage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.destroy()
+
+    def destroy(self):
+        self.player_anim_dead.play()
+        print("player dead")
+        
+class Enemy():
+    def __init__(self, base, render):
+        self.base = base
+        self.render = render
+        
+        model_path = loader.load_model('sci_models/robo_anim.glb')
+        self.EnemyActor = Actor(model_path)
+        self.EnemyActor.setScale(1.8)
+        #self.EnemyActor.setPos(1.934,64.853,-0.9)
+        #self.EnemyActor.setH(180)
+        self.model=self.render.attachNewNode('EnemyMain')
+        self.EnemyActor.reparentTo(self.model)
+        self.model.setPos(1.934,64.853,-0.8)
+
+        # Enemy stats
+        self.health = 100
+        self.speed = 2
+
+        # animations
+        self.robo_anim_attack = self.EnemyActor.getAnimControl('Arise') #(one hand slice attack with rotation)
+        self.robo_anim_dead = self.EnemyActor.getAnimControl('Skill_01') #dead
+        self.robo_anim_angry = self.EnemyActor.getAnimControl('Walking') #(get angry)
+        self.robo_anim_walking = self.EnemyActor.getAnimControl('BeHit_FlyUp') #Walking
+        self.robo_anim_boxing = self.EnemyActor.getAnimControl('Running') #Boxing_Practice
+        self.robo_anim_behit = self.EnemyActor.getAnimControl('Dead') #BeHit_FlyUp
+        self.robo_anim_running = self.EnemyActor.getAnimControl('Skill_03') #Running
+        self.robo_anim_arise = self.EnemyActor.getAnimControl('Boxing_Practice') #Arise (getup from ground)
+        
+    def start_attack(self):
+        self.robo_anim_attack.play()
+
+    def stop_attack(self):
+        if self.robo_anim_attack.isPlaying():
+            self.robo_anim_attack.stop()
+
+    def start_walk(self):
+        if not self.robo_anim_walking.isPlaying():
+            self.robo_anim_walking.loop(0)
+
+    def stop_walk(self):
+        if self.robo_anim_walking.isPlaying():
+            self.robo_anim_walking.stop()
+            
+    def take_damage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.destroy()
+
+    def destroy(self):
+        self.robo_anim_dead.play()
+        
+        print("Enemy Destroyed")
+        #self.model.removeNode()
          
-class LookingDemo(ShowBase):
+class GameMain(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
@@ -65,15 +208,15 @@ class LookingDemo(ShowBase):
         # --- disable the default camera mouse controller ---
         self.disable_mouse()
         
-        # --- some initializations ---
+        # --- initializations ---
         self.FilterManager_1 = FilterManager(base.win, base.cam)
         self.Filters=CommonFilters(base.win, base.cam)
         self.pipeline = simplepbr.init(use_normal_maps=True)
         self.props = WindowProperties()
         
-        # --- adjustable parameters ---
+        # --- parameters ---
         self.mouse_sensitivity=10
-        self.move_speed=8
+        self.move_speed=18#8
 
         # --- set loading label at start---
         self.CenterLabel=DirectLabel(text='Loading...',pos=(0,0,0),scale=0.07,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0),frameColor=(0, 0, 0, 0))
@@ -113,47 +256,14 @@ class LookingDemo(ShowBase):
         base.accept('tab', base.bufferViewer.toggleEnable)
 
         # --- initialize bullet world ---
-        self.world = BulletWorld()
-        self.world.setGravity(Vec3(0, 0, -9.81))
+        self.bullet_world = BulletWorld()
+        self.bullet_world.setGravity(Vec3(0, 0, -9.81))
         
-        # --- initialize CharacterController ---
-        self.spawn_point=(0,0,0)
-        self.prev_velocity = Vec3(0, 0, 0)
-        radius=0.15
-        height=1.5
-        playerShape = BulletCapsuleShape(radius, height, ZUp)
-        self.PlayerController = BulletCharacterControllerNode(playerShape, 1, "PlayerMain")
-        #self.PlayerMain.setPos(self.spawn_point)
-        #self.world.attachCharacter(self.PlayerController)
-        self.PlayerController.setJumpSpeed(2.0)
-        #self.PlayerController.setMaxSlope(60.0)
-        #self.PlayerController.setMaxJumpHeight(3.0)
+        # --- initialize player ---
+        self.player=Player(base,self.render, self.bullet_world, self.loader, self.camera)
         
-        # --- load the player model and set collisions ---
-        model_path = loader.load_model('sci_models/MaleSurvivor1.bam')
-        #model_path.setH(180)
-        self.PlayerActor = Actor(model_path)
-        self.PlayerActor.setScale(0.1, 0.1, 0.1)
-        self.PlayerActor.setH(180)
-        self.PlayerMain = self.render.attachNewNode(self.PlayerController)
-        self.world.attachCharacter(self.PlayerController)
-        #self.PlayerActor.setPos(0,0,1)
-        self.PlayerActor.reparent_to(self.PlayerMain)
-        self.first_person_view_NP = self.PlayerMain.attachNewNode('first_person_view')
-        self.first_person_view_NP.setPos(0,0.35,-0.65)
-        self.camera.reparentTo(self.first_person_view_NP)
-        self.third_person_view_NP = self.PlayerMain.attachNewNode('third_person_view')
-        self.third_person_view_NP.setPos(0,-2,-0.1)
-        self.camera_view=0
-        #self.camera.reparentTo(self.third_person_view_NP)
-        self.PlayerMain.setPos(self.spawn_point)#actor starting position
-        self.actor_0=self.PlayerMain
-        
-        # --- set player animations ---
-        self.animation1 = self.PlayerActor.getAnimControl('NlaTrack')#rest
-        self.animation2 = self.PlayerActor.getAnimControl('NlaTrack.001')#walk
-        self.animation3 = self.PlayerActor.getAnimControl('NlaTrack.004')#attack
-        self.animation1.loop(0)
+        # --- initialize enemy robot ---
+        self.robot=Enemy(base,self.render)
         
         # --- load and set satellite dish and animation---
         model_path = loader.load_model('sci_models/Satellite_dish_anim_L.bam')
@@ -164,8 +274,6 @@ class LookingDemo(ShowBase):
         self.sat_anim_1 = self.actor_sat.getAnimControl('scanning_120_deg_horizontal')
         self.sat_anim_1.loop(0)
         
-        self.robot_1=self.models_all[self.models_names_all.index('sci_models_Robot_1')]
-
         # --- load game sounds ---
         self.event_1_started=False
         self.event_1_finished=False
@@ -174,25 +282,19 @@ class LookingDemo(ShowBase):
         self.mySound1.setLoop(True)
         self.mySound1.play()
         
-        # --- loading complete ---
-        self.CenterLabel["text"] = "Loading Completed."
-        Sequence(Wait(1.5),Func(self.CenterLabel.hide)).start()
-
         # -------------------------
         # FLOOR COLLISION
         # -------------------------
-        
         groundShape = BulletBoxShape(Vec3(100, 100, 1))
         groundNode = BulletRigidBodyNode("Ground")
         groundNode.addShape(groundShape)
         groundNP = self.render.attachNewNode(groundNode)
         groundNP.setPos(0, 0, -1)
-        self.world.attachRigidBody(groundNode)
+        self.bullet_world.attachRigidBody(groundNode)
 
         ground_plane = self.models_all[self.models_names_all.index('ground_metal')]
         ground_plane.reparentTo(groundNP)
         
-
         # -------------------------
         # CREATE WALLS
         # -------------------------
@@ -208,14 +310,14 @@ class LookingDemo(ShowBase):
         pot_plant = self.models_all[self.models_names_all.index('sci_models_pot_plant_1')]
         self.triggerNP_1 = self.render.attachNewNode(self.triggerNode_1)
         self.triggerNP_1.setPos(pot_plant.getPos(self.render))
-        self.world.attachGhost(self.triggerNode_1)
+        self.bullet_world.attachGhost(self.triggerNode_1)
 
-        triggerShape = BulletSphereShape(2)
+        triggerShape = BulletSphereShape(3)
         self.triggerNode_2 = BulletGhostNode("Robot_Trigger")
         self.triggerNode_2.addShape(triggerShape)
         self.triggerNP_2 = self.render.attachNewNode(self.triggerNode_2)
-        self.triggerNP_2.setPos(self.robot_1.getPos(self.render))
-        self.world.attachGhost(self.triggerNode_2)
+        self.triggerNP_2.setPos(self.robot.model.getPos(self.render))
+        self.bullet_world.attachGhost(self.triggerNode_2)
 
         # -------------------------
         # DEBUG VIEW
@@ -227,14 +329,15 @@ class LookingDemo(ShowBase):
         debugNP = self.render.attachNewNode(debugNode)
         debugNP.show()
 
-        self.world.setDebugNode(debugNode)
+        self.bullet_world.setDebugNode(debugNode)
         """
-
-    def set_camera_view(self):
-        if self.camera_view==0:
-            self.camera.reparentTo(self.first_person_view_NP)
-        if self.camera_view==1:
-            self.camera.reparentTo(self.third_person_view_NP)
+        
+        # --- loading complete ---
+        self.CenterLabel["text"] = "Loading Completed."
+        Sequence(Wait(1.5),Func(self.CenterLabel.hide)).start()
+        
+        # --- temp vars initialization ---
+        self.saved_hpr=[0,0,0]
             
     def createWall(self, x, y, z, sx, sy, sz):
         shape = BulletBoxShape(Vec3(sx/2, sy/2, sz/2))
@@ -244,8 +347,7 @@ class LookingDemo(ShowBase):
         wallNP = self.render.attachNewNode(node)
         wallNP.setPos(x, y, z)
 
-        self.world.attachRigidBody(node)
-
+        self.bullet_world.attachRigidBody(node)
         
     def update(self, task):
 
@@ -255,54 +357,26 @@ class LookingDemo(ShowBase):
 
         if self.keyMap["move_forward"]:
             move.y += speed
-            self.startAnimation2()
+            self.player.start_walk()
         elif self.keyMap["move_backward"]:
             move.y -= speed
-            self.startAnimation2()
+            self.player.start_walk()
         elif self.keyMap["move_left"]:
             move.x -= speed
-            self.startAnimation2()
+            self.player.start_walk()
         elif self.keyMap["move_right"]:
             move.x += speed
-            self.startAnimation2()
+            self.player.start_walk()
         else:
-            self.stopAnimation()
+            self.player.stop_walk()
 
-        self.PlayerController.setLinearMovement(move, True)
-        self.triggerNP_2.setPos(self.robot_1.getPos(self.render))
-        self.world.doPhysics(dt, 10, 1.0/180.0)  # Substeps for stability
+        self.player.PlayerController.setLinearMovement(move, True)
+        self.triggerNP_2.setPos(self.robot.model.getPos(self.render))
+        self.bullet_world.doPhysics(dt, 10, 1.0/180.0)  # Substeps for stability
         #pos=self.PlayerMain.getPos()
         #self.bottom_cam_label.setText('ActorPos: %0.2f,%0.2f,%0.2f'%(pos[0],pos[1],pos[2]))
                 
-        return task.cont
-
-
-    def startAnimation(self):
-        self.animation3.play()
-        if not(self.event_1_finished):
-            self.run_event_1()
-
-            
-    def stopAnimation(self):
-        # Check if animation is already playing, if so, stop it
-        if self.animation2.isPlaying():
-            self.animation2.stop()
-            self.animation1.loop(0)
-            
-    def startAnimation2(self):
-        if self.animation2.isPlaying():
-            pass
-        else:
-            self.animation2.loop(0)
-
-    def stopAnimation2(self):
-        # Check if animation is already playing, if so, stop it
-        if self.animation2.isPlaying():
-            self.animation2.stop()
-            self.animation1.loop(0)
-        if self.animation3.isPlaying():
-            self.animation3.stop()
-            self.animation1.loop(0)    
+        return task.cont  
 
     def set_cubemap(self):
 
@@ -437,11 +511,10 @@ class LookingDemo(ShowBase):
     def setKey(self, key, value):
         
         if key=="gravity_on":
-            self.keyMap[key]=not(self.keyMap[key])
+            self.keyMap[key] = not self.keyMap[key]
             
         elif key=="space_key":
-            self.jump()
-            print(self.event_1_started)
+            self.player.jump()
             if self.event_1_started:
                 self.event1_seq.finish()
                 self.event_1_finished=True
@@ -449,24 +522,20 @@ class LookingDemo(ShowBase):
             
         elif key=="punch":
             if value==True:
-                self.startAnimation()
+                self.player.start_attack()
+                if not self.event_1_finished:
+                    self.run_event_1()
             else:
-                self.stopAnimation() 
+                pass
+                #self.player.stop_attack() 
                 
         elif key=="camera_view":
-            self.camera_view+=1
-            if self.camera_view>1:
-                self.camera_view=0
-            self.set_camera_view()
-            self.keyMap[key]=not(self.keyMap[key])
+            self.player.toggle_camera_view()
+            self.keyMap[key] = not self.keyMap[key]
             
         else:
             self.keyMap[key] = value
             
-    def jump(self):
-        if self.PlayerController.isOnGround():
-            self.PlayerController.doJump()
-
     def setupLights(self):  # Sets up some default lighting
         self.ambientLight = AmbientLight("ambientLight")
         self.ambientLight_Intensity=0.2
@@ -574,7 +643,7 @@ class LookingDemo(ShowBase):
             # Clamp pitch to avoid flipping
             self.cameraAngleP = max(-90, min(90, self.cameraAngleP))
             
-            self.PlayerMain.setH(self.cameraAngleH)
+            self.player.PlayerMain.setH(self.cameraAngleH)
             self.camera.setP(self.cameraAngleP)
 
         return Task.cont  # Task continues infinitely
@@ -582,13 +651,13 @@ class LookingDemo(ShowBase):
     def run_event_1(self):
 
         pot_plant = self.models_all[self.models_names_all.index('sci_models_pot_plant_1')]
-        #self.robot_1 = self.models_all[self.models_names_all.index('sci_models_Robot_1')]
+        #self.robot = self.models_all[self.models_names_all.index('sci_models_robot')]
         mega_structure = self.models_all[self.models_names_all.index('Mega_Structure_T_shape')]
         
         event_flag=0
         overlapping = self.triggerNode_1.getOverlappingNodes()
         for node in overlapping:
-            if node==self.PlayerController:
+            if node==self.player.PlayerController:
                 event_flag=1
                 
         if not event_flag==1: return
@@ -616,16 +685,17 @@ class LookingDemo(ShowBase):
 
             Wait(1),
 
-            Func(self.PlayerMain.lookAt, pot_plant),
+            Func(self.player.PlayerMain.lookAt, pot_plant),
             Func(self.camera.setP, 20),
             Func(pot_plant.setColorScale, 1, 0, 0, 1),
 
             Wait(2),
 
-            Func(self.robot_1.lookAt, (-7.67,75.02,self.cameraHeight)),
-            Func(self.robot_1.setH, self.robot_1.getH()-90),
-            #Func(self.robot_1.setY, self.robot_1.getY() + 8),
-            Func(self.PlayerMain.lookAt, self.robot_1),
+            Func(self.robot.start_walk),
+            Func(self.robot.model.lookAt, (-7.67,75.02,self.cameraHeight)),
+            Func(self.robot.model.setH, self.robot.model.getH()-90),
+            #Func(self.robot.setY, self.robot.getY() + 8),
+            Func(self.player.PlayerMain.lookAt, self.robot.model),
             Func(self.camera.setP, 0),
 
             Wait(1),
@@ -635,45 +705,45 @@ class LookingDemo(ShowBase):
             # anim_seq_1
             Parallel(
                 LerpPosInterval(
-                    self.PlayerMain,
+                    self.player.PlayerMain,
                     5,
                     (
-                        self.PlayerMain.getX() + 5 * 0.03 * 60,
-                        self.PlayerMain.getY(),
-                        self.PlayerMain.getZ()
+                        self.player.PlayerMain.getX() + 5 * 0.03 * 60,
+                        self.player.PlayerMain.getY(),
+                        self.player.PlayerMain.getZ()
                     )
                 ),
 
                 LerpPosInterval(
-                    self.robot_1,
+                    self.robot.model,
                     5,
                     (
-                        self.robot_1.getX() - 5 * 0.01 * 60,
-                        self.robot_1.getY(),
-                        self.robot_1.getZ()
+                        self.robot.model.getX() - 5 * 0.01 * 60,
+                        self.robot.model.getY(),
+                        self.robot.model.getZ()
                     )
                 )
             ),
 
             # anim_seq_2
             LerpPosInterval(
-                self.robot_1,
-                8,
+                self.robot.model,
+                5,
                 (
                     -7.67,
                     75.02,
-                    self.robot_1.getZ()
+                    self.robot.model.getZ()
                 )
             ),
 
             # anim_seq_3
             Func(
-                self.robot_1.scaleInterval(
+                self.robot.model.scaleInterval(
                     2,
                     (
-                        self.robot_1.getScale()[0] + 2.4,
-                        self.robot_1.getScale()[1] + 2.4,
-                        self.robot_1.getScale()[2] + 2.4
+                        self.robot.model.getScale()[0] + 0.7,
+                        self.robot.model.getScale()[1] + 0.7,
+                        self.robot.model.getScale()[2] + 0.7
                     )
                 ).start
             ),
@@ -684,7 +754,7 @@ class LookingDemo(ShowBase):
             Func(self.set_keymap),
             Func(self.reset_mouse),
             Func(taskMgr.add, self.actor_rotate, "camera_rotateTask"),
-            Func(self.PlayerMain.setH, 0),
+            Func(self.player.PlayerMain.setH, 0),
             Func(taskMgr.add, self.anim_seq_4_chase, "anim_seq_4_chase"),
 
             Wait(30),
@@ -701,12 +771,9 @@ class LookingDemo(ShowBase):
         
     def anim_seq_4_chase(self, task):
 
-        robot_pos = self.robot_1.getPos()
-        player_pos = self.PlayerMain.getPos()
+        robot_pos = self.robot.model.getPos()
+        player_pos = self.player.PlayerMain.getPos()
 
-        # look at player
-        self.robot_1.lookAt(self.PlayerMain)
-        self.robot_1.setH(self.robot_1.getH() + 180)
 
         # direction vector
         direction = player_pos - robot_pos
@@ -722,10 +789,22 @@ class LookingDemo(ShowBase):
         speed = 0.1
 
         # move robot
-        self.robot_1.setPos( robot_pos + direction * speed )
+        self.robot.model.setPos( robot_pos + direction * speed )
 
+        # look at player
+        self.robot.model.lookAt(self.player.PlayerMain)
+        self.robot.model.setH(self.robot.model.getH() + 180)
+        
+        # to avoid robot rotation when lookat player 
+        if 6 < dist < 7:
+            self.saved_hpr = self.robot.model.getHpr()
+        if dist<6:
+            hpr=self.robot.model.getHpr()
+            self.robot.model.setHpr(hpr[0],self.saved_hpr[1],self.saved_hpr[2])
+            
         if dist < 2:
             taskMgr.remove('anim_seq_4_chase')
+            self.robot.start_attack()
             print('you lose')
             self.show_info_gui_box('You Lose')
             return Task.done
@@ -737,7 +816,7 @@ class LookingDemo(ShowBase):
 
         return Task.cont
         
-demo=LookingDemo()
+demo=GameMain()
 demo.run()
 
 
