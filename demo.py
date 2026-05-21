@@ -216,7 +216,7 @@ class GameMain(ShowBase):
         
         # --- parameters ---
         self.mouse_sensitivity=10
-        self.move_speed=18#8
+        self.move_speed=8#8
 
         # --- set loading label at start---
         self.CenterLabel=DirectLabel(text='Loading...',pos=(0,0,0),scale=0.07,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0),frameColor=(0, 0, 0, 0))
@@ -239,6 +239,10 @@ class GameMain(ShowBase):
         # --- initialize the bottom left label ---
         self.bottom_cam_label=DirectLabel(text='CamPos: ',pos=(-1,1,-0.9),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
         self.bottom_cam_label.setText('press f to punch')
+        
+        # --- initialize the bottom right label ---
+        self.bottom_right_label=DirectLabel(text='',pos=(1,1,-0.7),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
+        #self.bottom_right_label.setText('press space key to skip')
         
         # --- load some important functions ---
         self.set_keymap()
