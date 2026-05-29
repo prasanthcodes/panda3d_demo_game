@@ -15,6 +15,7 @@ from panda3d.bullet import BulletTriangleMesh, BulletTriangleMeshShape, BulletBo
 from panda3d.core import Texture, TexturePool, LoaderOptions, TextureStage, TexGenAttrib, TransformState
 from direct.filter.FilterManager import FilterManager
 import random
+from direct.showbase.Audio3DManager import Audio3DManager
 
 import sys
 import os
@@ -56,13 +57,271 @@ loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "win-size 1920 1080")
 #loadPrcFileData("", "fullscreen t")
 
+class GameMenuSystem(ShowBase):
+    def __init__(self,app_instance,first_time=True):
+        self.app = app_instance
+        self.first_time=first_time
+        
+        # --- 1. Audio Configurations ---
+        try:
+            self.hover_sound = self.app.loader.loadSfx("sci_models/res/hover.mp3")
+            self.click_sound = self.app.loader.loadSfx("sci_models/res/click.mp3")
+        except:
+            print("Note: Audio assets missing. Running in silent mode.")
+            self.hover_sound = None
+            self.click_sound = None
+
+        # --- 2. Global Background Setup ---
+        try:
+            self.background = OnscreenImage(image='sci_models/res/background.jpg', pos=(0, 0, 0), parent=self.app.render2d)
+        except:
+            # Fallback color background if image doesn't exist
+            self.background = OnscreenImage(image='', pos=(0, 0, 0), scale=(2, 1, 1),
+                                            color=(0.12, 0.14, 0.18, 1), parent=self.app.render2d)
+
+        # Lists to keep track of active UI elements for easy cleanup
+        self.main_menu_elements = []
+        self.settings_elements = []
+        self.about_elements = []
+
+        # Reusable shared styling for standard buttons
+        self.button_style = {
+            "frameSize": (-3.5, 3.5, -0.6, 0.6), 
+            "scale": 0.1,                        
+            "borderWidth": (0.05, 0.05),
+            "text_scale": 0.55,
+            "text_fg": (1, 1, 1, 1),
+            "text_pos": (0, -0.15),
+            "frameColor": (
+                (0.2, 0.4, 0.6, 0.8),  # Normal
+                (0.1, 0.2, 0.4, 1.0),  # Pressed
+                (0.3, 0.6, 0.9, 0.9),  # Hovered
+                (0.5, 0.5, 0.5, 1.0)   # Disabled
+            )
+        }
+
+        # Load the initial main menu
+        self.create_main_menu()
+
+    # --- UI Sound Management ---
+    def bind_sounds(self, element):
+        element.bind(DGG.B1PRESS, self.play_click_sound)
+        element.bind(DGG.WITHIN, self.play_hover_sound)
+
+    def play_hover_sound(self, entry=None):
+        if self.hover_sound: self.hover_sound.play()
+
+    def play_click_sound(self, entry=None):
+        if self.click_sound: self.click_sound.play()
+
+
+    # ==========================================
+    # SCREEN 1: MAIN MENU
+    # ==========================================
+    def create_main_menu(self):
+        self.clear_all_screens()
+
+        # Core Game Title (Flora Theme: Neon Bio-Green)
+        title = OnscreenText(
+            text="PROJECT: FLORA GUARD", 
+            pos=(0, 0.75), 
+            scale=0.13, 
+            fg=(0.0, 0.9, 0.4, 1.0), 
+            bg=(0.1, 0.1, 0.1, 0.75),
+            align=TextNode.ACenter, 
+            mayChange=False
+        )
+        self.main_menu_elements.append(title)
+
+        # Tactical Subtitle (Automata Theme: Warning Orange)
+        subtitle = OnscreenText(
+            text="AUTOMATA INCURSION", 
+            pos=(0, 0.63), 
+            scale=0.06, 
+            fg=(1.0, 0.5, 0.0, 1.0), 
+            bg=(0.1, 0.1, 0.1, 0.75),
+            align=TextNode.ACenter, 
+            mayChange=False
+        )
+        self.main_menu_elements.append(subtitle)
+
+        # Main Menu Buttons
+        btn_start = DirectButton(text="Start Game", pos=(0, 0, 0.3), command=self.start_game, **self.button_style)
+        btn_resume = DirectButton(text="Resume Game", pos=(0, 0, 0.3), command=self.resume_game, **self.button_style)
+        if self.first_time:
+            btn_start.show()
+            btn_resume.hide()
+        else:
+            btn_start.hide()
+            btn_resume.show()
+        btn_settings = DirectButton(text="Settings", pos=(0, 0, 0.0), command=self.open_settings, **self.button_style)
+        btn_about = DirectButton(text="About", pos=(0, 0, -0.3), command=self.open_about, **self.button_style)
+        btn_exit = DirectButton(text="Exit", pos=(0, 0, -0.6), command=self.exit_game, **self.button_style)
+
+        # Track and assign sound effects
+        for btn in [btn_start,btn_resume, btn_settings, btn_about, btn_exit]:
+            self.main_menu_elements.append(btn)
+            self.bind_sounds(btn)
+
+    def start_game(self):
+        self.clear_all_screens()
+        if hasattr(self, 'background') and self.background:
+            self.background.destroy()
+            self.background = None
+        # Callback to trigger the main game load sequence
+        self.app.start_game_world()
+
+    def resume_game(self):
+        self.clear_all_screens()
+        if hasattr(self, 'background') and self.background:
+            self.background.destroy()
+            self.background = None
+        # Callback to trigger the main game load sequence
+        self.app.resume_game_world()
+        
+    def pause_game(self):
+        self.clear_all_screens()
+        if hasattr(self, 'background') and self.background:
+            self.background.destroy()
+            self.background = None
+        # Callback to trigger the main game load sequence
+        self.app.pause_game_world()
+        
+    # ==========================================
+    # SCREEN 2: SETTINGS SCREEN
+    # ==========================================
+    def open_settings(self):
+        self.clear_all_screens()
+
+        # Settings Screen Title
+        title = OnscreenText(text="SETTINGS", pos=(0, 0.7), scale=0.12, fg=(1, 0.8, 0.2, 1),bg=(0.1, 0.1, 0.1, 0.75), mayChange=False)
+        self.settings_elements.append(title)
+        
+        # --- MOUSE SENSITIVITY INPUT ---
+        sensitivity_label = OnscreenText(text="Mouse Sensitivity:", pos=(-0.6, 0.45), scale=0.06, fg=(1, 1, 1, 1), align=TextNode.ALeft)
+        self.settings_elements.append(sensitivity_label)
+        
+        # DirectEntry requires initial text set via initialText, and width constraints via numLines/focus
+        self.sensitivity_entry = DirectEntry(
+            pos=(0, 0, 0.45), # Adjust Z slightly downward from the label
+            scale=0.06,
+            numLines=1,
+            focus=0,
+            frameColor=(0.1, 0.1, 0.1, 0.75),
+            text_fg=(1, 1, 1, 1),
+            width=5, # Restricts the visual input box width
+            command=self.adjust_sensitivity
+        )
+        self.sensitivity_entry.set(str(self.app.mouse_sensitivity)) 
+        self.settings_elements.append(self.sensitivity_entry)
+        
+        # --- BGM VOLUME SLIDER ---
+        bgm_label = OnscreenText(text="BGM Volume:", pos=(-0.6, 0.15), scale=0.06, fg=(1, 1, 1, 1), align=TextNode.ALeft)
+        self.settings_elements.append(bgm_label)
+
+        self.bgm_slider = DirectSlider(
+            range=(0, 100), 
+            value=70, 
+            pos=(0.2, 0, 0.15), 
+            scale=0.4, 
+            command=self.adjust_bgm_volume
+        )
+        self.settings_elements.append(self.bgm_slider)
+
+        # --- SFX VOLUME SLIDER ---
+        sfx_label = OnscreenText(text="SFX Volume:", pos=(-0.6, -0.1), scale=0.06, fg=(1, 1, 1, 1), align=TextNode.ALeft)
+        self.settings_elements.append(sfx_label)
+
+        self.sfx_slider = DirectSlider(
+            range=(0, 100), 
+            value=80, 
+            pos=(0.2, 0, -0.1), 
+            scale=0.4, 
+            command=self.adjust_sfx_volume
+        )
+        self.settings_elements.append(self.sfx_slider)
+
+        # Back Button to return to Main Menu
+        btn_back = DirectButton(text="Back", pos=(0, 0, -0.6), command=self.create_main_menu, **self.button_style)
+        self.settings_elements.append(btn_back)
+        self.bind_sounds(btn_back)
+
+    def adjust_sensitivity(self, text_entered):
+        try:
+            # DirectEntry returns a string, parse it to a float safely
+            sens_value = float(text_entered)
+            formatted_sens = float(f"{sens_value:.2f}")
+            self.app.mouse_sensitivity=formatted_sens
+        except ValueError:
+            # Handle user typing invalid characters like letters
+            self.sensitivity_entry.set("10") 
+
+    def adjust_bgm_volume(self):
+        # DirectSlider gets its current state value via .getValue()
+        volume = self.bgm_slider.getValue() / 100.0 # Standardize to 0.0 - 1.0 for audio engines
+        print(f"BGM Volume: {volume}")
+        # self.my_bgm_sound.setVolume(volume)
+
+    def adjust_sfx_volume(self):
+        volume = self.sfx_slider.getValue() / 100.0
+        print(f"SFX Volume: {volume}")
+        # self.my_sfx_sound.setVolume(volume)
+        
+    # ==========================================
+    # SCREEN 3: ABOUT SCREEN
+    # ==========================================
+    def open_about(self):
+        self.clear_all_screens()
+
+        # About Screen Title
+        title = OnscreenText(text="ABOUT", pos=(0, 0.7), scale=0.12, fg=(1, 0.8, 0.2, 1), mayChange=False)
+        self.about_elements.append(title)
+
+        # Description text blocks
+        about_info = (
+            "Developed with Panda3D Engine\n\n"
+            "Developer: Prasanth\n"
+            "Version: 3.0.0 (2026)\n\n"
+            "Thank you for playing."
+        )
+        
+        # FIXED: Using TextNode.ACenter integer constant
+        info_text = OnscreenText(text=about_info, pos=(0, 0.2), scale=0.06, 
+                                 fg=(0.9, 0.9, 0.9, 1),bg=(0.1, 0.1, 0.1, 0.75), align=TextNode.ACenter, wordwrap=20)
+        self.about_elements.append(info_text)
+
+        # Back Button to return to Main Menu
+        btn_back = DirectButton(text="Back", pos=(0, 0, -0.6), command=self.create_main_menu, **self.button_style)
+        self.about_elements.append(btn_back)
+        self.bind_sounds(btn_back)
+
+
+    # ==========================================
+    # UI CLEANUP UTILITIES
+    # ==========================================
+    def clear_all_screens(self):
+        for element in self.main_menu_elements:
+            element.destroy()
+        for element in self.settings_elements:
+            element.destroy()
+        for element in self.about_elements:
+            element.destroy()
+            
+        self.main_menu_elements.clear()
+        self.settings_elements.clear()
+        self.about_elements.clear()
+
+    def exit_game(self):
+        self.app.exit_game()
+
 class Player():
-    def __init__(self, base, render, world, loader, camera):
+    def __init__(self, base, render, world, loader, camera, sfx_all):
         self.base = base
         self.render = render
         self.world = world
         self.loader = loader
         self.camera = camera
+        self.sfx_all = sfx_all
         
         # --- initialize CharacterController ---
         self.spawn_point=(0,0,0)
@@ -84,6 +343,7 @@ class Player():
         self.PlayerActor.setScale(1.5)
         self.PlayerActor.setPos(0,0,-1.8)
         self.PlayerActor.setH(180)
+        self.PlayerActor.pose('Walking', 0)
         self.PlayerMain = self.render.attachNewNode(self.PlayerController)
         self.world.attachCharacter(self.PlayerController)
         #self.PlayerActor.setPos(0,0,1)
@@ -108,6 +368,8 @@ class Player():
         self.player_anim_arise = self.PlayerActor.getAnimControl('Arise')
         self.player_anim_attack = self.PlayerActor.getAnimControl('Skill_03') #(one hand slice attack with rotation)
         
+        self.health=100
+        
     def toggle_camera_view(self):
         self.camera_view = (self.camera_view + 1) % 2
         if self.camera_view == 0:
@@ -116,22 +378,44 @@ class Player():
             self.camera.reparentTo(self.third_person_view_NP)
             
     def start_attack(self):
-        self.PlayerActor.setPos(1,0.1,-1.8)
-        self.player_anim_boxing.play()
+        #self.PlayerActor.setPos(1,0.1,-1.8)
+        self.player_anim_attack.play()
+        self.sfx_all['boxing'].play()
 
     def stop_attack(self):
+        if self.player_anim_attack.isPlaying():
+            self.player_anim_attack.stop()
+            self.PlayerActor.setPos(0,0,-1.8)
+
+    def start_punch(self):
+        self.player_anim_boxing.play(0, 25)
+        self.sfx_all['punch'].play()
+        
+    def stop_punch(self):
+        if self.player_anim_boxing.isPlaying():
+            self.player_anim_boxing.stop()
+            
+    def start_boxing(self):
+        self.PlayerActor.setPos(1,0.1,-1.8)
+        self.player_anim_attack.play()
+        self.sfx_all['boxing'].play()
+
+    def stop_boxing(self):
         if self.player_anim_boxing.isPlaying():
             self.player_anim_boxing.stop()
             self.PlayerActor.setPos(0,0,-1.8)
-
+        
     def start_walk(self):
         if not self.player_anim_walking.isPlaying():
             self.player_anim_walking.loop(0)
             self.PlayerActor.setPos(0,0,-1.8)
+            self.sfx_all['player_walk'].setLoop(True)
+            self.sfx_all['player_walk'].play()
 
     def stop_walk(self):
         if self.player_anim_walking.isPlaying():
             self.player_anim_walking.stop()
+            self.sfx_all['player_walk'].stop()
             
     def jump(self):
         if self.PlayerController.isOnGround():
@@ -140,22 +424,24 @@ class Player():
     def take_damage(self, damage):
         self.health -= damage
         if self.health <= 0:
-            self.destroy()
+            self.die()
 
-    def destroy(self):
+    def die(self):
         self.player_anim_dead.play()
         print("player dead")
         
 class Enemy():
-    def __init__(self, base, render):
+    def __init__(self, base, render, sfx_all, audio3d):
         self.base = base
         self.render = render
+        self.sfx_all=sfx_all
+        self.audio3d=audio3d
         
         model_path = loader.load_model('sci_models/robo_anim.glb')
         self.EnemyActor = Actor(model_path)
         self.EnemyActor.setScale(1.8)
         #self.EnemyActor.setPos(1.934,64.853,-0.9)
-        #self.EnemyActor.setH(180)
+        self.EnemyActor.setH(180)
         self.model=self.render.attachNewNode('EnemyMain')
         self.EnemyActor.reparentTo(self.model)
         self.model.setPos(1.934,64.853,-0.8)
@@ -174,6 +460,13 @@ class Enemy():
         self.robo_anim_running = self.EnemyActor.getAnimControl('Skill_03') #Running
         self.robo_anim_arise = self.EnemyActor.getAnimControl('Boxing_Practice') #Arise (getup from ground)
         
+    def start_punch(self):
+        self.robo_anim_boxing.play()
+
+    def stop_punch(self):
+        if self.robo_anim_boxing.isPlaying():
+            self.robo_anim_boxing.stop()
+            
     def start_attack(self):
         self.robo_anim_attack.play()
 
@@ -184,21 +477,111 @@ class Enemy():
     def start_walk(self):
         if not self.robo_anim_walking.isPlaying():
             self.robo_anim_walking.loop(0)
+            self.audio3d.attachSoundToObject(self.sfx_all['robot_walk'], self.model)
+            self.audio3d.setDropOffFactor(0.5)
+            self.sfx_all['robot_walk'].setLoop(True)
+            self.sfx_all['robot_walk'].play()
 
     def stop_walk(self):
         if self.robo_anim_walking.isPlaying():
             self.robo_anim_walking.stop()
+            self.sfx_all['robot_walk'].stop()
             
     def take_damage(self, damage):
         self.health -= damage
-        if self.health <= 0:
-            self.destroy()
+        #if self.health <= 0:
+        #    self.die()
 
-    def destroy(self):
+    def die(self):
         self.robo_anim_dead.play()
-        
-        print("Enemy Destroyed")
         #self.model.removeNode()
+
+class HealthHUD():
+    def __init__(self,aspect2d,taskMgr,start_x,pos_z,max_health,current_health):
+        
+        self.aspect2d = aspect2d
+        self.taskMgr = taskMgr
+        # Core Health Variables
+        self.max_health = max_health#100.0
+        self.current_health = current_health#100.0
+        self.ghost_health = self.current_health
+        self.ghost_speed = 50.0 # How fast the ghost bar catches up per second
+        
+        # Base UI Configuration
+        # (X_scale, Y_scale, Z_scale) -> Y is depth, X is width, Z is height
+        self.bar_width = 0.25
+        self.bar_height = 0.015
+        self.start_x = start_x #-0.8 # Left-aligned positioning on screen
+        self.pos_z = pos_z #0.8    # Top of the screen
+        
+        self.setup_health_bar()
+        
+        # Add the update loop to the task manager
+        self.taskMgr.add(self.update_ghost_bar, "UpdateGhostBarTask")
+
+    def setup_health_bar(self):
+        # CardMaker creates clean, solid-colored geometric cards 
+        cm = CardMaker("hud_card")
+        cm.setFrame(-1, 1, -1, 1) # Sets local bounds from center
+        
+        # 1. Background Bar (Dark Gray)
+        self.bg_bar = self.aspect2d.attachNewNode(cm.generate())
+        self.bg_bar.setPos(self.start_x + self.bar_width, 0, self.pos_z)
+        self.bg_bar.setScale(self.bar_width, 1, self.bar_height)
+        self.bg_bar.setColor(0.2, 0.2, 0.2, 0.7)
+
+        # 2. Ghost Bar (Yellow/White)
+        self.ghost_bar = self.aspect2d.attachNewNode(cm.generate())
+        self.ghost_bar.setPos(self.start_x + self.bar_width, 0, self.pos_z)
+        self.ghost_bar.setScale(self.bar_width, 1, self.bar_height)
+        self.ghost_bar.setColor(0.9, 0.8, 0.2, 0.7)
+
+        # 3. Current Health Bar (Green)
+        self.health_bar = self.aspect2d.attachNewNode(cm.generate())
+        self.health_bar.setPos(self.start_x + self.bar_width, 0, self.pos_z)
+        self.health_bar.setScale(self.bar_width, 1, self.bar_height)
+        self.health_bar.setColor(0.1, 0.8, 0.1, 0.7)
+
+    def update_bar_display(self, bar_element, health_value):
+    
+        if health_value < 0: health_value = 0
+        
+        # Calculate percentage
+        pct = health_value / self.max_health
+        
+        # Calculate new width scale
+        new_scale_x = self.bar_width * pct
+        
+        # Shift the X position so the left side stays anchored in place
+        new_pos_x = self.start_x + new_scale_x
+        
+        # Apply transformations
+        self.health_bar.setScale(new_scale_x, 1, self.bar_height)
+        self.health_bar.setX(new_pos_x)
+
+    def update_ghost_bar(self, task):
+        # Delta time ensures smooth tracking independent of framerate
+        dt = globalClock.getDt()
+        
+        # If ghost bar is ahead of actual health, slide it down
+        if self.ghost_health > self.current_health:
+            self.ghost_health -= self.ghost_speed * dt
+            
+            # Clamp it so it doesn't overshoot actual health
+            if self.ghost_health < self.current_health:
+                self.ghost_health = self.current_health
+                
+            self.update_bar_display(self.ghost_bar, self.ghost_health)
+            
+        return Task.cont
+        
+    def take_damage(self, amount):
+        self.current_health -= amount
+        if self.current_health < 0: 
+            self.current_health = 0
+            
+        # Update the green bar immediately
+        self.update_bar_display(self.health_bar, self.current_health)
          
 class GameMain(ShowBase):
 
@@ -213,9 +596,26 @@ class GameMain(ShowBase):
         self.Filters=CommonFilters(base.win, base.cam)
         self.pipeline = simplepbr.init(use_normal_maps=True)
         self.props = WindowProperties()
+        self.props.setCursorHidden(False)
+        self.win.requestProperties(self.props)
+        self.game_is_running=False
+        self.mouse_sensitivity=10
+        self.bgm_volume=0.5
+        self.sfx_volume=0.5
+        
+        #super().__init__()
+        
+        self.menu = GameMenuSystem(self,True)
+
+    def start_game_world(self):
+        """This function will execute the moment 'Start Game' is clicked."""
+
+        # --- hide mouse cursor ---
+        self.props.setCursorHidden(True)
+        self.win.requestProperties(self.props)
         
         # --- parameters ---
-        self.mouse_sensitivity=10
+        #self.mouse_sensitivity=10
         self.move_speed=8#8
 
         # --- set loading label at start---
@@ -237,12 +637,26 @@ class GameMain(ShowBase):
         self.camera.setPos(0,0,1)
         
         # --- initialize the bottom left label ---
-        self.bottom_cam_label=DirectLabel(text='CamPos: ',pos=(-1,1,-0.9),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
-        self.bottom_cam_label.setText('press f to punch')
+        self.bottom_cam_label=DirectLabel(text='',pos=(-1.3,1,-0.8),scale=0.05,text_align=TextNode.ALeft,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
+        self.bottom_cam_label.setText('Goto Robot')
         
         # --- initialize the bottom right label ---
         self.bottom_right_label=DirectLabel(text='',pos=(1,1,-0.7),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
         #self.bottom_right_label.setText('press space key to skip')
+        self.dialogue_text = "You: Why are you here? \n Robot: I have been sent here to destroy a rare plant. \n   It is located in that building.. \n   Mission Started ..."
+        self.current_index = 0
+
+        # --- initialize the timer label ---
+        self.timer_label = OnscreenText(
+            text="02:00",
+            pos=(0.0, 0.95),  # Top center of the screen
+            scale=0.05,
+            fg=(1, 1, 1, 1),  # White text
+            align=TextNode.ACenter,  # Center-aligned so it scales evenly
+            mayChange=True,  # Optimizes performance for changing strings
+            parent=self.aspect2d
+        )
+        self.timer_label.hide()
         
         # --- load some important functions ---
         self.set_keymap()
@@ -256,24 +670,46 @@ class GameMain(ShowBase):
         #taskMgr.add(self.initial_loading_tasks, "initial_loading_tasks")
         #taskMgr.add(self.general_tasks, "general_tasks")
         self.taskMgr.add(self.update, "update")
+        self.taskMgr.add(self.run_event_1, "event_1_task")
         
         base.accept('tab', base.bufferViewer.toggleEnable)
-
+        
+        # --- initialize sound manager ---
+        self.audio3d = Audio3DManager(self.sfxManagerList[0], self.camera)
+        
+        self.sfx_all = {
+            "punch":base.loader.loadSfx("sci_models/sounds/universfield-punch-04-383965.mp3"),
+            "boxing":base.loader.loadSfx("sci_models/sounds/muhammad_ayman-punch-95294.mp3"),
+            "attack":base.loader.loadSfx("sci_models/sounds/taolao111-punch-sound-effect-7ehhx2evi5k-500092.mp3"),
+            "robot_dead":base.loader.loadSfx("sci_models/sounds/freesound_community-dead-robot-01-82175.mp3"),
+            "robot_laugh":base.loader.loadSfx("sci_models/sounds/diff_style-robot-laughing-1-344762.mp3"),
+            "robot_damage_1":base.loader.loadSfx("sci_models/sounds/freesound_community-damage-40114.mp3"),
+            "robot_running":base.loader.loadSfx("sci_models/sounds/flutie8211-running-steps-amp-loud-alarm-469367.mp3"),
+            "robot_processing":base.loader.loadSfx("sci_models/sounds/greenstarfire-robot-processing-sound-fx-197857.mp3"),
+            "robot_statement":base.loader.loadSfx("sci_models/sounds/freesound_community-robot-statements-31911.mp3"),
+            "player_run":base.loader.loadSfx("sci_models/sounds/spinopel-run-fast-on-asphalt-393096.mp3"),
+            "robot_walk":self.audio3d.loadSfx("sci_models/sounds/freesounds123-heavy-character-walk-363348_mono.mp3"),
+            "player_walk":base.loader.loadSfx("sci_models/sounds/freesound_community-walking-on-hard-surface-25350.mp3"),
+            "player_dead":base.loader.loadSfx("sci_models/sounds/cryptowista-human-body-fall-crashing-down-on-pavement-corpse-drop-315338.mp3"),
+            "robot_impact":base.loader.loadSfx("sci_models/sounds/dragon-studio-impact-406635.mp3"),
+            "player_impact":base.loader.loadSfx("sci_models/sounds/lucas_lesc-impact-clothes-308657.mp3")
+        }
+        
         # --- initialize bullet world ---
         self.bullet_world = BulletWorld()
         self.bullet_world.setGravity(Vec3(0, 0, -9.81))
         
         # --- initialize player ---
-        self.player=Player(base,self.render, self.bullet_world, self.loader, self.camera)
+        self.player=Player(base,self.render, self.bullet_world, self.loader, self.camera, self.sfx_all)
         
         # --- initialize enemy robot ---
-        self.robot=Enemy(base,self.render)
+        self.robot=Enemy(base,self.render, self.sfx_all, self.audio3d)
         
         # --- load and set satellite dish and animation---
         model_path = loader.load_model('sci_models/Satellite_dish_anim_L.bam')
         self.actor_sat = Actor(model_path)
         self.actor_sat.reparent_to(self.render)
-        self.actor_sat.setPos(55.5859375,95.69079,0.0866)
+        self.actor_sat.setPos(55.5859375,95.69079,-0.9)
         self.actor_sat.setScale(1.82116,1.82116,1.82116)
         self.sat_anim_1 = self.actor_sat.getAnimControl('scanning_120_deg_horizontal')
         self.sat_anim_1.loop(0)
@@ -281,11 +717,15 @@ class GameMain(ShowBase):
         # --- load game sounds ---
         self.event_1_started=False
         self.event_1_finished=False
+        self.event_3_finished=False
+        self.anim_seq_4_started=False
         self.mySound1 = base.loader.loadSfx("sci_models/Uncertain-Future.mp3")
         self.mySound2 = base.loader.loadSfx("sci_models/Dark-Future-Theme.mp3")
         self.mySound1.setLoop(True)
+        self.mySound1.setVolume(0.7)
+        self.mySound2.setVolume(0.7)
         self.mySound1.play()
-        
+
         # -------------------------
         # FLOOR COLLISION
         # -------------------------
@@ -326,7 +766,7 @@ class GameMain(ShowBase):
         # -------------------------
         # DEBUG VIEW
         # -------------------------
-        """
+        
         debugNode = BulletDebugNode('Debug')
         debugNode.showWireframe(True)
 
@@ -334,15 +774,75 @@ class GameMain(ShowBase):
         debugNP.show()
 
         self.bullet_world.setDebugNode(debugNode)
-        """
+        
         
         # --- loading complete ---
         self.CenterLabel["text"] = "Loading Completed."
         Sequence(Wait(1.5),Func(self.CenterLabel.hide)).start()
         
-        # --- temp vars initialization ---
+        # --- vars initializations ---
         self.saved_hpr=[0,0,0]
-            
+        # Store the timestamp of when the player can punch next (0 means immediately)
+        self.next_punch_time = 0.0
+        self.punch_cooldown = 1.0 # 1 second cooldown
+        # Store the timestamp of when the enemy can punch next (0 means immediately)
+        self.next_punch_time_2 = 0.0
+        self.punch_cooldown_2 = 1.0 # 1 second cooldown
+        
+        self.total_match_time=2*60 #minutes
+        self.game_is_running=True
+        
+        pass
+
+    def handle_escape_press(self):
+        """Handles what happens when the player presses the ESCAPE key."""
+        if self.game_is_running:
+            self.exit_to_menu()
+
+    def exit_to_menu(self):
+        self.game_is_running = False
+
+        self.props.setCursorHidden(False)
+        self.win.requestProperties(self.props)
+
+        # 4. Re-instantiate the main menu manager
+        self.menu = GameMenuSystem(self,False)
+        self.pause_game_world()
+
+    def pause_game_world(self):
+        taskMgr.remove("camera_rotateTask")
+        self.game_is_running=False
+    
+    def resume_game_world(self):
+        taskMgr.add(self.actor_rotate, "camera_rotateTask")
+        self.props.setCursorHidden(True)
+        self.win.requestProperties(self.props)
+        self.game_is_running=True
+    
+    def exit_game(self):
+        sys.exit()
+        
+    def start_typing_effect(self, label, text, speed=0.05):
+
+        data = {
+            "index": 0,
+            "text": text,
+            "label": label
+        }
+
+        def update(task):
+
+            if data["index"] <= len(data["text"]):
+
+                data["label"]["text"] = data["text"][:data["index"]]
+                data["index"] += 1
+
+                return Task.again
+
+            return Task.done
+
+        taskMgr.doMethodLater(speed, update, f"typing_task")
+        
     def createWall(self, x, y, z, sx, sy, sz):
         shape = BulletBoxShape(Vec3(sx/2, sy/2, sz/2))
         node = BulletRigidBodyNode("Wall")
@@ -382,6 +882,108 @@ class GameMain(ShowBase):
                 
         return task.cont  
 
+    def look_at_smooth(self, node, target_pos, duration, task_name="smooth_look"):
+        """
+        Smoothly rotate a node toward a world position over time.
+        
+        Args:
+            node        : NodePath to rotate
+            target_pos  : Point3 target world position
+            duration    : Time in seconds
+        """
+        start_h = node.getH(self.render)
+        start_p = node.getP(self.render)
+
+        # Direction vector
+        dir_vec = target_pos - node.getPos(self.render)
+
+        # Calculate heading (Y forward in Panda3D)
+        target_h = math.degrees(math.atan2(-dir_vec.x, dir_vec.y))
+
+        # Calculate pitch
+        horizontal_dist = (dir_vec.x**2 + dir_vec.y**2) ** 0.5
+        target_p = math.degrees(math.atan2(dir_vec.z, horizontal_dist))
+
+        # Shortest angle interpolation
+        dh = ((target_h - start_h + 180) % 360) - 180
+        dp = target_p - start_p
+
+        elapsed = 0.0
+
+        def update_look(task):
+            nonlocal elapsed
+
+            dt = globalClock.getDt()
+            elapsed += dt
+
+            t = min(elapsed / duration, 1.0)
+
+            # Smooth interpolation
+            new_h = start_h + dh * t
+            new_p = start_p + dp * t
+
+            node.setH(self.render, new_h)
+            node.setP(self.render, new_p)
+
+            if t >= 1.0:
+                return task.done
+
+            return task.cont
+
+        taskMgr.remove(task_name)
+        taskMgr.add(update_look, task_name)
+    
+    def player_look_at_smooth(self, node, target_pos, duration, task_name="smooth_look"):
+        """
+        Smoothly rotate a node toward a world position over time.
+        
+        Args:
+            node        : NodePath to rotate
+            target_pos  : Point3 target world position
+            duration    : Time in seconds
+        """
+        start_h = node.getH(self.render)
+        start_p = self.camera.getP(self.render)
+
+        # Direction vector
+        dir_vec = target_pos - node.getPos(self.render)
+
+        # Calculate heading (Y forward in Panda3D)
+        target_h = math.degrees(math.atan2(-dir_vec.x, dir_vec.y))
+
+        # Calculate pitch
+        horizontal_dist = (dir_vec.x**2 + dir_vec.y**2) ** 0.5
+        target_p = math.degrees(math.atan2(dir_vec.z, horizontal_dist))
+
+        # Shortest angle interpolation
+        dh = ((target_h - start_h + 180) % 360) - 180
+        dp = target_p - start_p
+
+        elapsed = 0.0
+
+        def update_look(task):
+            nonlocal elapsed
+
+            dt = globalClock.getDt()
+            elapsed += dt
+
+            t = min(elapsed / duration, 1.0)
+
+            # Smooth interpolation
+            new_h = start_h + dh * t
+            new_p = start_p + dp * t
+
+            node.setH(self.render, new_h)
+            self.camera.setP(self.render, new_p)
+
+            if t >= 1.0:
+                return task.done
+
+            return task.cont
+
+        taskMgr.remove(task_name)
+        taskMgr.add(update_look, task_name)
+    
     def set_cubemap(self):
 
         # The options when loading the texture, in this case, does not make any sense, just for demonstration.
@@ -415,7 +1017,7 @@ class GameMain(ShowBase):
         skybox.setShaderOff()
         skybox.setScale(4500,4500,4500)         
         
-    def show_info_gui_box(self,msg):
+    def show_info_gui_box(self,msg,status_flag):
         # Create a frame (the "GUI box")
         self.gui_box = DirectFrame(
             frameSize=(-0.5, 0.5, -0.3, 0.3),
@@ -440,13 +1042,14 @@ class GameMain(ShowBase):
             pos=(0, 0, -0.1),
             scale=0.1,                        
             command=self.on_gui_box_button_click,
+            extraArgs=[status_flag],
             frameColor=(1, 1, 1, 0.9),
         )
         taskMgr.remove("camera_rotateTask")
         self.props.setCursorHidden(False)
         base.win.requestProperties(self.props)
 
-    def on_gui_box_button_click(self):
+    def on_gui_box_button_click(self,status_flag):
         if self.gui_box is not None:
             self.gui_box.destroy()
             self.gui_box = None
@@ -454,7 +1057,8 @@ class GameMain(ShowBase):
             #sys.exit
             self.props.setCursorHidden(True)
             base.win.requestProperties(self.props)
-            self.move_speed=30
+            if status_flag:
+                self.move_speed=30
     
     def load_environment_models(self):
         json_file=self.scene_data_filename
@@ -493,7 +1097,7 @@ class GameMain(ShowBase):
     def set_keymap(self):
         self.keyMap = {"move_forward": 0, "move_backward": 0, "move_left": 0, "move_right": 0,"gravity_on":1,
         "right_click":0,"punch":0,"Start":0,"space_key":0,"camera_view":0}
-        self.accept('escape', sys.exit)
+        self.accept('escape', self.handle_escape_press)
         self.accept("w", self.setKey, ["move_forward", True])
         self.accept("s", self.setKey, ["move_backward", True])
         self.accept("w-up", self.setKey, ["move_forward", False])
@@ -502,11 +1106,13 @@ class GameMain(ShowBase):
         self.accept("d", self.setKey, ["move_right", True])
         self.accept("a-up", self.setKey, ["move_left", False])
         self.accept("d-up", self.setKey, ["move_right", False])
-        self.accept("g", self.setKey, ["gravity_on", None])
+        #self.accept("g", self.setKey, ["gravity_on", None])
         self.accept("mouse3", self.setKey, ["right_click", True])
         self.accept("mouse3-up", self.setKey, ["right_click", False])
         self.accept("f", self.setKey, ["punch", True])
-        self.accept("f-up", self.setKey, ["punch", False]) 
+        self.accept("f-up", self.setKey, ["punch", False])
+        self.accept("c", self.setKey, ["attack", True])
+        self.accept("c-up", self.setKey, ["attack", False]) 
         self.accept("g", self.setKey, ["Start", True]) 
         self.accept("space", self.setKey, ["space_key", True])
         self.accept("v", self.setKey, ["camera_view", True])
@@ -519,18 +1125,23 @@ class GameMain(ShowBase):
             
         elif key=="space_key":
             self.player.jump()
-            if self.event_1_started:
+            if self.event_1_started and not self.event_1_finished:
                 self.event1_seq.finish()
                 self.event_1_finished=True
+                taskMgr.remove("typing_task")
+                self.bottom_cam_label.setText('')
+                self.bottom_right_label.setText('')
             self.keyMap[key] = False
             
         elif key=="punch":
             if value==True:
-                self.player.start_attack()
-                if not self.event_1_finished:
-                    self.run_event_1()
+                self.keyMap[key]=True
+                if not self.anim_seq_4_started:
+                    self.player.start_punch()
+                if not self.event_3_finished:
+                    self.run_event_3()
             else:
-                pass
+                self.keyMap[key] = False
                 #self.player.stop_attack() 
                 
         elif key=="camera_view":
@@ -652,19 +1263,17 @@ class GameMain(ShowBase):
 
         return Task.cont  # Task continues infinitely
             
-    def run_event_1(self):
-
-        pot_plant = self.models_all[self.models_names_all.index('sci_models_pot_plant_1')]
-        #self.robot = self.models_all[self.models_names_all.index('sci_models_robot')]
-        mega_structure = self.models_all[self.models_names_all.index('Mega_Structure_T_shape')]
-        
+    def run_event_1(self,task):
+    
         event_flag=0
-        overlapping = self.triggerNode_1.getOverlappingNodes()
+        overlapping = self.triggerNode_2.getOverlappingNodes()
         for node in overlapping:
             if node==self.player.PlayerController:
                 event_flag=1
                 
-        if not event_flag==1: return
+        if not event_flag==1: return Task.cont
+        
+        taskMgr.remove("event_1_task")
         
         # disable controls
         self.ignoreAll()
@@ -672,112 +1281,165 @@ class GameMain(ShowBase):
         for key in ['move_forward', 'move_backward', 'move_left', 'move_right']:
             self.keyMap[key] = False
 
-        self.accept('escape', sys.exit)
+        self.accept('escape', self.handle_escape_press)
         taskMgr.remove("camera_rotateTask")
         self.reset_mouse()
 
         # sounds
-        self.mySound1.stop()
-        self.mySound2.setLoop(True)
-        self.mySound2.play()
+        #self.mySound1.stop()
+        #self.mySound2.setLoop(True)
+        #self.mySound2.play()
         
-        self.bottom_cam_label.setText('press space to skip')
+        self.bottom_right_label.setText('press space to skip')
         self.accept("space", self.setKey, ["space_key", True]) 
-
+        
         # main cinematic sequence
         self.event1_seq = Sequence(
-
             Wait(1),
-
-            Func(self.player.PlayerMain.lookAt, pot_plant),
-            Func(self.camera.setP, 20),
-            Func(pot_plant.setColorScale, 1, 0, 0, 1),
-
-            Wait(2),
-
-            Func(self.robot.start_walk),
-            Func(self.robot.model.lookAt, (-7.67,75.02,self.cameraHeight)),
-            Func(self.robot.model.setH, self.robot.model.getH()-90),
-            #Func(self.robot.setY, self.robot.getY() + 8),
-            Func(self.player.PlayerMain.lookAt, self.robot.model),
-            Func(self.camera.setP, 0),
-
-            Wait(1),
-
-            Func(mega_structure.hide),
-
-            # anim_seq_1
-            Parallel(
-                LerpPosInterval(
-                    self.player.PlayerMain,
-                    5,
-                    (
-                        self.player.PlayerMain.getX() + 5 * 0.03 * 60,
-                        self.player.PlayerMain.getY(),
-                        self.player.PlayerMain.getZ()
-                    )
-                ),
-
-                LerpPosInterval(
-                    self.robot.model,
-                    5,
-                    (
-                        self.robot.model.getX() - 5 * 0.01 * 60,
-                        self.robot.model.getY(),
-                        self.robot.model.getZ()
-                    )
-                )
-            ),
-
-            # anim_seq_2
-            LerpPosInterval(
-                self.robot.model,
-                5,
-                (
-                    -7.67,
-                    75.02,
-                    self.robot.model.getZ()
-                )
-            ),
-
-            # anim_seq_3
-            Func(
-                self.robot.model.scaleInterval(
-                    2,
-                    (
-                        self.robot.model.getScale()[0] + 0.7,
-                        self.robot.model.getScale()[1] + 0.7,
-                        self.robot.model.getScale()[2] + 0.7
-                    )
-                ).start
-            ),
-
-            Wait(3),
+            Func(self.player_look_at_smooth, self.player.PlayerMain,self.robot.model.getPos(),1),
+            #Func(self.player.PlayerMain.lookAt, (1.934,57,self.player.PlayerMain.getZ())),
+            LerpPosInterval(self.player.PlayerMain,1,(1.934,57,self.player.PlayerMain.getZ())),
+            Func(self.player_look_at_smooth, self.player.PlayerMain,LPoint3f(self.robot.model.getX(),self.robot.model.getY(),self.robot.model.getZ()+1),1),
             
+            Wait(1),
+            Func(self.start_typing_effect,self.bottom_cam_label,self.dialogue_text,0.03),
+            
+            Wait(8),
             Func(setattr, self, "event_1_finished", True),
             Func(self.set_keymap),
             Func(self.reset_mouse),
             Func(taskMgr.add, self.actor_rotate, "camera_rotateTask"),
-            Func(self.player.PlayerMain.setH, 0),
-            Func(taskMgr.add, self.anim_seq_4_chase, "anim_seq_4_chase"),
-
-            Wait(30),
-
-            Func(mega_structure.show)
-
+            Func(self.bottom_cam_label.setText,''),
+            Func(self.bottom_right_label.setText,''),
+            Func(self.run_event_2),
+            
         )
         
         self.event_1_started=True
         self.event1_seq.start()
-
+        return Task.cont
+        
+    def run_event_2(self):
+        pot_plant = self.models_all[self.models_names_all.index('sci_models_pot_plant_1')]
+        self.event2_seq = Sequence(
+            Wait(0.5),
+            Func(self.look_at_smooth, self.robot.model,pot_plant.getPos(),1),
+            Func(self.robot.start_walk),
+            Func(self.bottom_cam_label.setText,'stop the robot from destroying the plant.'),
+            LerpPosInterval(self.robot.model,35,(pot_plant.getX(),pot_plant.getY(),self.robot.model.getZ())),
+            Func(self.robot.start_attack),
+            Wait(2),
+            Func(self.show_info_gui_box,'Plant destroyed. You Lose',0),
+            Func(setattr, self, "event_3_finished", True),#to prevent running of event_3
+        )
+        self.event2_seq.start()
+        
+    def run_event_3(self):
+        event_flag=0
+        overlapping = self.triggerNode_2.getOverlappingNodes()
+        for node in overlapping:
+            if node==self.player.PlayerController:
+                event_flag=1
+                self.event_3_finished=True#to prevent rerun of this event
+                
+        if not event_flag==1: return
+        
+        self.event2_seq.pause()
+        self.event3_seq = Sequence(
+        Func(self.bottom_cam_label.setText,''),
+        Func(self.bottom_right_label.setText,''),
+        Func(self.robot.stop_walk),
+        Wait(0.5),
+        Func(self.look_at_smooth, self.robot.model,LPoint3f(self.player.PlayerMain.getX(),self.player.PlayerMain.getY(),self.robot.model.getZ()),1),
+        Wait(2),
+        Func(self.robot.start_walk),
+        Func(self.initialize_anim_seq_4),
+        Func(taskMgr.add,self.anim_seq_4_chase, "anim_seq_4_chase"),
+        )
+        self.event3_seq.start()
+        
     def reset_mouse(self):
         self.win.movePointer(0, int(self.win.getXSize() / 2), int(self.win.getYSize() / 2))
+
+    def initialize_anim_seq_4(self):
+        # initialize healthHUD
+        self.playerhud_label=DirectLabel(text='Your Health:',pos=(-1.3,1,0.943),scale=0.04,text_align=TextNode.ALeft,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0),frameColor=(0, 0, 0, 0))
+        self.enemyhud_label=DirectLabel(text='Robot Health:',pos=(0.47,1,0.943),scale=0.04,text_align=TextNode.ALeft,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0),frameColor=(0, 0, 0, 0))
+
+        self.player_hud=HealthHUD(self.aspect2d,taskMgr,-1.05,0.95,100,100)
+        self.enemy_hud=HealthHUD(self.aspect2d,taskMgr,0.75,0.95,100,100)
+        
+        self.timer_label.show()
+        self.anim_seq_4_started=True
+
+    def player_punch_sequence(self, robot_pos, direction, damage_value):
+        """Handles everything that happens when the player hits the robot."""
+        # Calculate the knockback position for the robot
+        knockback_pos = robot_pos - direction * 2
+        
+        # Fire a clean animation and event sequence
+        seq = Sequence(
+            Func(self.player.start_punch),
+            Func(self.robot.take_damage, damage_value),
+            Func(self.enemy_hud.take_damage, damage_value),
+            # Animate the robot backwards smoothly over 0.25 seconds
+            self.robot.model.posInterval(0.25, knockback_pos),
+        )
+        seq.start()
+
+    def player_attack_sequence(self, robot_pos, direction, damage_value):
+        """Handles everything that happens when the player hits the robot."""
+        # Calculate the knockback position for the robot
+        knockback_pos = robot_pos - direction * 15
+        
+        # Fire a clean animation and event sequence
+        seq = Sequence(
+            Func(self.player.start_attack),
+            Func(self.robot.take_damage, damage_value),
+            Func(self.enemy_hud.take_damage, damage_value),
+            Func(self.robot.robo_anim_behit.play),
+            ProjectileInterval(self.robot.model, endPos=knockback_pos, duration=1),
+            Wait(0.5),
+            Func(self.robot.start_walk),
+        )
+        seq.start()
+        
+    def robot_punch_sequence(self, player_pos, direction, damage_value):
+        """Handles everything that happens when the robot hits the player."""
+        # Calculate the knockback position for the player
+        knockback_pos = player_pos + direction * 2
+        
+        seq = Sequence(
+            Func(self.robot.start_punch),
+            Func(self.player.take_damage, damage_value),
+            Func(self.player_hud.take_damage, damage_value),
+            Wait(1),
+            Func(self.robot.start_walk),
+        )
+        seq.start()
+        
+    def robot_attack_sequence(self, player_pos, direction, damage_value):
+        """Handles everything that happens when the robot hits the player."""
+        # Calculate the knockback position for the player
+        knockback_pos = player_pos + direction * 2
+        
+        seq = Sequence(
+            Func(self.robot.start_attack),
+            Func(self.player.take_damage, damage_value),
+            Func(self.player_hud.take_damage, damage_value),
+            # Animate the player backwards smoothly over 0.15 seconds
+            #self.player.PlayerMain.posInterval(0.15, knockback_pos),
+            Func(self.player.player_anim_behit.play),
+            Wait(2),
+            Func(self.robot.start_walk),
+        )
+        seq.start()
         
     def anim_seq_4_chase(self, task):
 
         robot_pos = self.robot.model.getPos()
         player_pos = self.player.PlayerMain.getPos()
-
+        current_time = globalClock.getFrameTime()
 
         # direction vector
         direction = player_pos - robot_pos
@@ -792,32 +1454,100 @@ class GameMain(ShowBase):
 
         speed = 0.1
 
-        # move robot
+        # move the robot
         self.robot.model.setPos( robot_pos + direction * speed )
-
-        # look at player
-        self.robot.model.lookAt(self.player.PlayerMain)
-        self.robot.model.setH(self.robot.model.getH() + 180)
+        random_1=random.random()
+        random_2=random.random()
         
-        # to avoid robot rotation when lookat player 
+        # to avoid the robot skewing when lookat the player 
         if 6 < dist < 7:
             self.saved_hpr = self.robot.model.getHpr()
         if dist<6:
             hpr=self.robot.model.getHpr()
             self.robot.model.setHpr(hpr[0],self.saved_hpr[1],self.saved_hpr[2])
+        else:
+            # look at player
+            self.robot.model.lookAt(self.player.PlayerMain)
+        
+        damage_value = 5+2*random.random()
+        # you punch enemy
+        if (dist<4)&(random_1>=0.5):
+            if self.keyMap['punch'] == True:
+                if current_time >= self.next_punch_time:
+                    # Set the timestamp for when player can punch NEXT
+                    self.next_punch_time = current_time + self.punch_cooldown
+                    # Run the player_punch sequence
+                    self.player_punch_sequence(robot_pos, direction, damage_value)
+                    
+        # if close, enemy punch you
+        if (dist < 2)&(random_2>=0.1):
+            if current_time >= self.next_punch_time_2:
+                # Set the timestamp for when they can punch NEXT
+                self.next_punch_time_2 = current_time + self.punch_cooldown_2
+                # Run the robot attack sequence
+                if self.player.health>0:
+                    self.robot_punch_sequence(player_pos, direction, damage_value)
+                    
+        damage_value = 15+2*random.random()
+        # you attack enemy
+        if (dist<4)&(random_1<0.5):
+            if self.keyMap['punch'] == True:
+                if current_time >= self.next_punch_time:
+                    # Set the timestamp for when player can punch NEXT
+                    self.next_punch_time = current_time + self.punch_cooldown
+                    # Run the player_punch sequence
+                    self.player_attack_sequence(robot_pos, direction, damage_value)
+                    
+        # if too close, enemy attack you
+        if (dist < 1)&(random_2<0.1):
+            if current_time >= self.next_punch_time_2:
+                # Set the timestamp for when they can punch NEXT
+                self.next_punch_time_2 = current_time + self.punch_cooldown_2
+                # Run the robot attack sequence
+                if self.player.health>0:
+                    self.robot_attack_sequence(player_pos, direction, damage_value)
+
+        # if player health is zero, game end.
+        if self.player.health <= 0:
+            seq = Sequence(
+                Wait(3),
+                Func(self.robot.stop_walk),
+                Func(self.show_info_gui_box,'You Lose',0)
+            )
+            seq.start()
+            return Task.done
             
-        if dist < 2:
-            taskMgr.remove('anim_seq_4_chase')
-            self.robot.start_attack()
-            print('you lose')
-            self.show_info_gui_box('You Lose')
+        # if robot health is zero, game end.
+        if self.robot.health <= 0:
+            seq = Sequence(
+                Wait(2.1),
+                Func(self.robot.stop_walk),
+                Func(self.robot.die),
+                Func(self.show_info_gui_box,'You Win',1)
+            )
+            seq.start()
             return Task.done
-
-        if task.time >= 1.5 * 60:
-            print('you win')
-            self.show_info_gui_box('You Win!')
+            
+        # Calculate remaining time. if time is up, game end.
+        time_remaining = self.total_match_time - task.time
+        if time_remaining <= 0:
+            self.timer_label.setText("00:00")
+            self.robot.stop_walk()
+            self.show_info_gui_box("Time's Up.",0)
             return Task.done
-
+            
+        # Format seconds into Minutes:Seconds format
+        minutes = int(time_remaining) // 60
+        seconds = int(time_remaining) % 60
+        time_string = f"{minutes:02d}:{seconds:02d}"
+        
+        # Update HUD text
+        self.timer_label.setText(time_string)
+        
+        # Optional: Make text turn red when under 10 seconds remaining
+        if time_remaining <= 10.0:
+            self.timer_label.setFg((1, 0.2, 0.2, 1)) # Red text
+            
         return Task.cont
         
 demo=GameMain()
