@@ -7,4 +7,5 @@ d - move right
 f - punch
 v - switch camera view
 space - jump, skip cut scene
-Esc - exit the program
+Esc - return to main menu
+
