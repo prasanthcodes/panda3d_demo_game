@@ -1,10 +1,8 @@
 # python 3.10
 
-
-Panda3D
-panda3d-gltf
-panda3d-simplepbr
-
+Panda3D==1.10.14
+panda3d-simplepbr==0.13.1
+panda3d-gltf==1.2.1
 
 #Panda3D==1.10.14
 #panda3d-simplepbr==0.13.1
