@@ -1,3 +1,16 @@
+import sys
+import traceback
+
+def log_crash(exc_type, exc_value, exc_traceback):
+    # This forces Python to write the full crash report to a text file
+    with open("crash_report.txt", "w") as f:
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=f)
+    # Still show it in console if available
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+# Register the crash hook
+sys.excepthook = log_crash
+
 import panda3d
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AmbientLight, DirectionalLight, PointLight
@@ -17,9 +30,9 @@ from direct.filter.FilterManager import FilterManager
 import random
 from direct.showbase.Audio3DManager import Audio3DManager
 
-import sys
 import os
 import math
+import datetime
 from direct.filter.CommonFilters import CommonFilters
 from panda3d.core import ClockObject
 from panda3d.core import *
@@ -51,11 +64,12 @@ panda3d.core.load_prc_file_data("", """
 #panda3d.core.load_prc_file_data('', 'fullscreen true')
 #loadPrcFileData('', 'coordinate-system y-up-left')
 
-loadPrcFileData("", "basic-shaders-only #t")
+#loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "gl-version 3 2")
 #loadPrcFileData("", "notify-level-glgsg debug")       
 #loadPrcFileData("", "win-size 1920 1080")
-#loadPrcFileData("", "fullscreen t")
+loadPrcFileData("", "win-size 1280 720")
+loadPrcFileData("", "fullscreen t")
 loadPrcFileData("", "icon-filename sci_models/icon.ico")
 loadPrcFileData("", "window-title Project: Flora Guard")
 
@@ -65,6 +79,7 @@ loadPrcFileData("", "notify-output logs.log")
 # Optional: Choose how detailed you want the logs to be 
 # (info, warning, error, or debug)
 loadPrcFileData("", "notify-level error")
+loadPrcFileData("", "model-path $MAIN_DIR/sci_models/")
 
 import sys
 from direct.showbase.ShowBase import ShowBase
@@ -84,7 +99,7 @@ class GameMenuSystem:
         
         self.resolutions = ["800 x 600", "1024 x 768", "1280 x 720", "1600 x 900", "1920 x 1080"]
         self.current_resolution = f"{init_w} x {init_h}" if f"{init_w} x {init_h}" in self.resolutions else "1280 x 720"
-        self.is_fullscreen = False
+        self.is_fullscreen = True
         
         # Backups used to revert settings automatically if things go wrong
         self.backup_resolution = self.current_resolution
@@ -513,7 +528,7 @@ class Player():
         #self.PlayerController.setMaxJumpHeight(3.0)
         
         # --- load the player model and set collisions ---
-        model_path = loader.load_model('sci_models/astronaut.glb')
+        model_path = self.loader.loadModel('sci_models/astronaut.glb')
         #model_path.setH(180)
         self.PlayerActor = Actor(model_path)
         self.PlayerActor.setScale(1.5)
@@ -620,13 +635,14 @@ class Player():
         self.sfx_all['player_dead'].play()
         
 class Enemy():
-    def __init__(self, base, render, sfx_all, audio3d):
+    def __init__(self, base, render, loader, sfx_all, audio3d):
         self.base = base
         self.render = render
         self.sfx_all=sfx_all
         self.audio3d=audio3d
+        self.loader = loader
         
-        model_path = loader.load_model('sci_models/robo_anim.glb')
+        model_path = self.loader.loadModel('sci_models/robo_anim.glb')
         self.EnemyActor = Actor(model_path)
         self.EnemyActor.setScale(1.8)
         #self.EnemyActor.setPos(1.934,64.853,-0.9)
@@ -634,6 +650,7 @@ class Enemy():
         self.model=self.render.attachNewNode('EnemyMain')
         self.EnemyActor.reparentTo(self.model)
         self.model.setPos(1.934,64.853,-0.8)
+        self.model.setH(180)
 
         # Enemy stats
         self.health = 100
@@ -642,7 +659,7 @@ class Enemy():
         # animations
         self.robo_anim_attack = self.EnemyActor.getAnimControl('Arise') #(one hand slice attack with rotation)
         self.robo_anim_dead = self.EnemyActor.getAnimControl('Skill_01') #dead
-        self.robo_anim_angry = self.EnemyActor.getAnimControl('Walking') #(get angry)
+        self.robo_anim_angry = self.EnemyActor.getAnimControl('Walking') #(get angry, can also used as laughing)
         self.robo_anim_walking = self.EnemyActor.getAnimControl('BeHit_FlyUp') #Walking
         self.robo_anim_boxing = self.EnemyActor.getAnimControl('Running') #Boxing_Practice
         self.robo_anim_behit = self.EnemyActor.getAnimControl('Dead') #BeHit_FlyUp
@@ -675,6 +692,18 @@ class Enemy():
         if self.robo_anim_walking.isPlaying():
             self.robo_anim_walking.stop()
             self.sfx_all['robot_walk'].stop()
+
+    def start_run(self):
+        if not self.robo_anim_running.isPlaying():
+            self.robo_anim_running.loop(0)
+            self.sfx_all['robot_running'].setLoop(True)
+            self.sfx_all['robot_running'].setVolume(0.4)
+            self.sfx_all['robot_running'].play()
+
+    def stop_run(self):
+        if self.robo_anim_running.isPlaying():
+            self.robo_anim_running.stop()
+            self.sfx_all['robot_running'].stop()
             
     def take_damage(self, damage):
         self.health -= damage
@@ -793,12 +822,14 @@ class GameMain(ShowBase):
         self.props = WindowProperties()
         self.props.setCursorHidden(False)
         self.win.requestProperties(self.props)
+        # Intercept the window-close event
+        self.win.set_close_request_event('window-close-clicked')
+        self.accept('window-close-clicked', self.exit_game)
+        
         self.game_is_running=False
         self.mouse_sensitivity=10
         self.bgm_volume=50
         self.sfx_volume=90
-        
-        #super().__init__()
         
         self.menu = GameMenuSystem(self,True)
 
@@ -819,9 +850,10 @@ class GameMain(ShowBase):
         base.graphicsEngine.renderFrame() 
 
         # --- load scene data from json ---
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        json_file = os.path.join(base_path, 'sci_models', 'scene_params3.json') # Sets absolute file path to avoid file not found errors
-        self.scene_data_filename= json_file
+        # Get the directory where the main binary/script resides
+        json_file = os.path.join('sci_models', 'scene_params3.json') # Sets absolute file path to avoid file not found errors
+        clean_path = Filename.fromOsSpecific(json_file).getFullpath()
+        self.scene_data_filename= clean_path
 
         # --- Camera param initializations ---
         self.cameraHeight = 1     # camera Height above ground
@@ -898,16 +930,17 @@ class GameMain(ShowBase):
         self.player=Player(base,self.render, self.bullet_world, self.loader, self.camera, self.sfx_all)
         
         # --- initialize enemy robot ---
-        self.robot=Enemy(base,self.render, self.sfx_all, self.audio3d)
+        self.robot=Enemy(base,self.render, self.loader, self.sfx_all, self.audio3d)
         
         # --- load and set satellite dish and animation---
-        model_path = loader.load_model('sci_models/Satellite_dish_anim_L.bam')
+        model_path = self.loader.loadModel('sci_models/satellite_dish/satellite_antenna_anim.bam')
         self.actor_sat = Actor(model_path)
         self.actor_sat.reparent_to(self.render)
         self.actor_sat.setPos(55.5859375,95.69079,-0.9)
-        self.actor_sat.setScale(1.82116,1.82116,1.82116)
-        self.sat_anim_1 = self.actor_sat.getAnimControl('scanning_120_deg_horizontal')
+        self.actor_sat.setScale(5)
+        self.sat_anim_1 = self.actor_sat.getAnimControl('Action')
         self.sat_anim_1.loop(0)
+        
         
         # --- load game sounds ---
         self.event_1_started=False
@@ -987,6 +1020,7 @@ class GameMain(ShowBase):
         self.total_match_time=2*60 #minutes
         self.game_is_running=True
         self.you_win=False
+        self.robot_walking = True
         
         pass
 
@@ -1240,7 +1274,7 @@ class GameMain(ShowBase):
         # You can add texture to the pool if you need to.
         TexturePool.add_texture(texture_cube_map)
 
-        skybox = loader.load_model('sci_models/sphere.bam')
+        skybox = loader.loadModel('sci_models/sphere.bam')
         skybox.reparentTo(self.render)
         skybox.set_texture(texture_cube_map)
         
@@ -1283,9 +1317,10 @@ class GameMain(ShowBase):
             extraArgs=[status_flag],
             frameColor=(1, 1, 1, 0.9),
         )
-        taskMgr.remove("camera_rotateTask")
-        self.props.setCursorHidden(False)
-        base.win.requestProperties(self.props)
+        if self.game_is_running:
+            taskMgr.remove("camera_rotateTask")
+            self.props.setCursorHidden(False)
+            base.win.requestProperties(self.props)
 
     def on_gui_box_button_click(self,status_flag):
         if self.gui_box is not None:
@@ -1310,11 +1345,13 @@ class GameMain(ShowBase):
         self.models_names_all=[]
         self.models_names_enabled=[]
         self.ModelTemp=""
-        for i in range(len(self.data_all)):
+        len_data_all=len(self.data_all)
+        for i in range(len_data_all):
             data=self.data_all[i]
             self.models_names_all.append(data["uniquename"])
             if data["enable"]:
                 self.ModelTemp=loader.loadModel(data["filename"])
+                print(f"loading={i+1}/{len_data_all}")
                 self.models_names_enabled.append(data["uniquename"])
                 d=data["pos"][1]
                 if data["pos"][0]: self.ModelTemp.setPos(d[0],d[1],d[2])
@@ -1337,7 +1374,7 @@ class GameMain(ShowBase):
 
     def set_keymap(self):
         self.keyMap = {"move_forward": 0, "move_backward": 0, "move_left": 0, "move_right": 0,"gravity_on":1,
-        "right_click":0,"punch":0,"Start":0,"space_key":0,"camera_view":0}
+        "right_click":0,"punch":0,"Start":0,"space_key":0,"camera_view":0,"take_screenshot":0}
         self.accept('escape', self.handle_escape_press)
         self.accept("w", self.setKey, ["move_forward", True])
         self.accept("s", self.setKey, ["move_backward", True])
@@ -1357,6 +1394,7 @@ class GameMain(ShowBase):
         self.accept("g", self.setKey, ["Start", True]) 
         self.accept("space", self.setKey, ["space_key", True])
         self.accept("v", self.setKey, ["camera_view", True])
+        self.accept("x", self.setKey, ["take_screenshot", True])   
         
     # Records the state of the keys
     def setKey(self, key, value):
@@ -1388,7 +1426,9 @@ class GameMain(ShowBase):
         elif key=="camera_view":
             self.player.toggle_camera_view()
             self.keyMap[key] = not self.keyMap[key]
-            
+        elif key=="take_screenshot":
+            self.take_screenshot()
+            self.keyMap[key]=False
         else:
             self.keyMap[key] = value
             
@@ -1506,7 +1546,15 @@ class GameMain(ShowBase):
             self.camera.setP(self.cameraAngleP)
 
         return Task.cont  # Task continues infinitely
-            
+
+    def start_camera_rotateTask(self):
+            if self.game_is_running:
+                taskMgr.add(self.actor_rotate, "camera_rotateTask")
+
+    def stop_camera_rotateTask(self):
+            if self.game_is_running:
+                taskMgr.remove("camera_rotateTask")
+                
     def run_event_1(self,task):
     
         event_flag=0
@@ -1526,7 +1574,7 @@ class GameMain(ShowBase):
             self.keyMap[key] = False
 
         self.accept('escape', self.handle_escape_press)
-        taskMgr.remove("camera_rotateTask")
+        self.stop_camera_rotateTask()
         self.reset_mouse()
 
         # sounds
@@ -1552,7 +1600,7 @@ class GameMain(ShowBase):
             Func(setattr, self, "event_1_finished", True),
             Func(self.set_keymap),
             Func(self.reset_mouse),
-            Func(taskMgr.add, self.actor_rotate, "camera_rotateTask"),
+            Func(self.start_camera_rotateTask),
             Func(self.bottom_cam_label.setText,''),
             Func(self.bottom_right_label.setText,''),
             Func(self.run_event_2),
@@ -1641,8 +1689,8 @@ class GameMain(ShowBase):
             Func(self.player.start_punch),
             Func(self.robot.take_damage, damage_value),
             Func(self.enemy_hud.take_damage, damage_value),
-            # Animate the robot backwards smoothly over 0.25 seconds
-            self.robot.model.posInterval(0.25, knockback_pos),
+            # Animate the robot backwards
+            ProjectileInterval(self.robot.model, endPos=knockback_pos, duration=0.2),
         )
         seq.start()
 
@@ -1656,6 +1704,7 @@ class GameMain(ShowBase):
             Func(self.player.start_attack),
             Func(self.robot.take_damage, damage_value),
             Func(self.enemy_hud.take_damage, damage_value),
+            Func(self.sfx_all['robot_impact'].play),
             Func(self.robot.robo_anim_behit.play),
             ProjectileInterval(self.robot.model, endPos=knockback_pos, duration=1),
             Wait(0.5),
@@ -1675,6 +1724,7 @@ class GameMain(ShowBase):
             Func(self.robot.start_punch),
             Func(self.player.take_damage, damage_value),
             Func(self.player_hud.take_damage, damage_value),
+            #ProjectileInterval(self.player.PlayerMain, endPos=knockback_pos, duration=0.2),
             Wait(1),
             Func(self.robot.start_walk),
         )
@@ -1683,14 +1733,14 @@ class GameMain(ShowBase):
     def robot_attack_sequence(self, player_pos, direction, damage_value):
         """Handles everything that happens when the robot hits the player."""
         # Calculate the knockback position for the player
-        knockback_pos = player_pos + direction * 2
+        knockback_pos = player_pos + direction * 10
         
         seq = Sequence(
             Func(self.robot.start_attack),
             Func(self.player.take_damage, damage_value),
             Func(self.player_hud.take_damage, damage_value),
-            # Animate the player backwards smoothly over 0.15 seconds
-            #self.player.PlayerMain.posInterval(0.15, knockback_pos),
+            # Animate the player backwards
+            #ProjectileInterval(self.player.PlayerMain, endPos=knockback_pos, duration=1),
             Func(self.player.player_anim_behit.play),
             Wait(2),
             Func(self.player.standing_pose),
@@ -1715,11 +1765,27 @@ class GameMain(ShowBase):
         if direction.length() > 0:
             direction.normalize()
 
-        speed = 0.1
-
         # move the robot
         if dist>=1:
-            self.robot.model.setPos( robot_pos + direction * speed )
+            if self.robot_walking:
+                speed = 0.1
+                self.robot.model.setPos( robot_pos + direction * speed )
+                if dist>=50:
+                    if random.random()<0.01:
+                        seq = Sequence(
+                            Func(setattr, self, "robot_walking", False),
+                            Func(self.robot.stop_walk),
+                            Func(self.robot.start_run),
+                            Wait(2+3*random.random()),
+                            Func(self.robot.stop_run),
+                            Func(self.robot.start_walk),
+                            Func(setattr, self, "robot_walking", True),
+                        ).start()
+            else:
+                # running
+                speed = 0.13
+                self.robot.model.setPos( robot_pos + direction * speed )
+
         random_1=random.random()
         random_2=random.random()
         
@@ -1735,7 +1801,7 @@ class GameMain(ShowBase):
         
         damage_value = 5+2*random.random()
         # you punch enemy
-        if (dist<4)&(random_1>=0.5):
+        if (dist<4)&(random_1>=0.3):
             if self.keyMap['punch'] == True:
                 if current_time >= self.next_punch_time:
                     # Set the timestamp for when player can punch NEXT
@@ -1744,7 +1810,7 @@ class GameMain(ShowBase):
                     self.player_punch_sequence(robot_pos, direction, damage_value)
                     
         # if close, enemy punch you
-        if (dist < 3)&(random_2>=0.5):
+        if (dist < 3)&(random_2>=0.3):
             if current_time >= self.next_punch_time_2:
                 # Set the timestamp for when they can punch NEXT
                 self.next_punch_time_2 = current_time + self.punch_cooldown_2
@@ -1754,7 +1820,7 @@ class GameMain(ShowBase):
                     
         damage_value = 15+2*random.random()
         # you attack enemy
-        if (dist<4)&(random_1<0.5):
+        if (dist<4)&(random_1<0.3):
             if self.keyMap['punch'] == True:
                 if current_time >= self.next_punch_time:
                     # Set the timestamp for when player can punch NEXT
@@ -1763,7 +1829,7 @@ class GameMain(ShowBase):
                     self.player_attack_sequence(robot_pos, direction, damage_value)
                     
         # if too close, enemy attack you
-        if (dist < 2)&(random_2<0.5):
+        if (dist < 2)&(random_2<0.3):
             if current_time >= self.next_punch_time_2:
                 # Set the timestamp for when they can punch NEXT
                 self.next_punch_time_2 = current_time + self.punch_cooldown_2
@@ -1817,6 +1883,12 @@ class GameMain(ShowBase):
             self.timer_label.setFg((1, 0.2, 0.2, 1)) # Red text
             
         return Task.cont
+
+    def take_screenshot(self):
+        now = datetime.datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+        filename = Filename(f"screenshot_{timestamp}.jpg")
+        base.win.saveScreenshot(filename)
         
 demo=GameMain()
 demo.run()

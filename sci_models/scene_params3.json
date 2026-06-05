@@ -77,23 +77,23 @@
     },
     {
         "uniquename": "sci_models_Futuristic_combat_jet",
-        "filename": "sci_models/Futuristic_combat_jet/Futuristic_combat_jet.bam",
+        "filename": "sci_models/jet_3d/jet_model.bam",
         "enable": true,
         "show": true,
         "pos": [
             true,
             [
                 11.5322265625,
-                58.765625,
-                -0.9
+                48.765625,
+                5
             ]
         ],
         "scale": [
             true,
             [
-                1.0,
-                1.0,
-                1.0
+                3.0,
+                3.0,
+                3.0
             ]
         ],
         "color": [
@@ -122,7 +122,7 @@
     },
     {
         "uniquename": "sci_models_Transport_Shuttle",
-        "filename": "sci_models/Transport_Shuttle/Transport_Shuttle.bam",
+        "filename": "sci_models/transport_ship/transport_ship.bam",
         "enable": true,
         "show": true,
         "pos": [
@@ -130,15 +130,15 @@
             [
                 37.310546875,
                 55.623046875,
-                -0.9
+                4
             ]
         ],
         "scale": [
             true,
             [
-                1.0,
-                1.0,
-                1.0
+                0.06,
+                0.06,
+                0.06
             ]
         ],
         "color": [
@@ -153,7 +153,7 @@
         "hpr": [
             true,
             [
-                90.0,
+                0.0,
                 0.0,
                 0.0
             ]
