@@ -1441,7 +1441,7 @@ class GameMain(ShowBase):
         self.directionalLight_intensity=3
         self.directionalLight.setColor((self.directionalLight_intensity,self.directionalLight_intensity,self.directionalLight_intensity, 1))
         #self.directionalLight.setSpecularColor((.1, .1, .1, .1))
-        self.directionalLight.setShadowCaster(True, 512, 512)
+        #self.directionalLight.setShadowCaster(True, 1024, 1024)
         self.dlight1=self.render.attachNewNode(self.directionalLight)
         self.dlight1.setHpr(0, -45, 0)
         self.dlight1.setPos(0,0,20)
@@ -1460,9 +1460,10 @@ class GameMain(ShowBase):
 
         self.dlight1.node().get_lens().set_film_size(250, 250)
         self.dlight1.node().get_lens().setNearFar(1, 150)
+        self.dlight1.node().show_frustum()
         self.render.setLight(self.dlight1)
         self.filter_lens_flare()
-
+        
         plight = PointLight('plight1')
         plight.setColor((200,200,200, 1))
         plight.setAttenuation(LVector3(0, 0, 1))# (constant,linear,quadratic attenuation)
@@ -1472,24 +1473,24 @@ class GameMain(ShowBase):
         
         plight1b = PointLight('plight1b')
         plight1b.setColor((200,200,200, 1))
-        plight1b.setAttenuation(LVector3(0, 0, 1))# (constant,linear,quadratic attenuation)
+        plight1b.setAttenuation(LVector3(0, 0, 1))
         plnp1b = self.render.attachNewNode(plight1b)
         plnp1b.setPos(-48, 74, 6)
         self.render.setLight(plnp1b)
-
-        plight2 = PointLight('plight2')
-        plight2.setColor((500,500,500, 1))
-        plight2.setAttenuation(LVector3(0, 0, 1))# (constant,linear,quadratic attenuation)
-        plnp2 = self.render.attachNewNode(plight2)
-        plnp2.setPos(-66, 74, 17)
-        self.render.setLight(plnp2)
         
-        plight3 = PointLight('plight3')
-        plight3.setColor((300,300,300, 1))
-        plight3.setAttenuation(LVector3(0, 0, 1))# (constant,linear,quadratic attenuation)
-        plnp3 = self.render.attachNewNode(plight3)
-        plnp3.setPos(-87, 74, 17)
-        self.render.setLight(plnp3)
+        self.spotLight_1 = Spotlight("main_spotlight")
+        self.spotLight_1.setColor(Vec4(900,900,900, 1)) 
+        self.spotLight_1.setAttenuation(Point3(1, 0.0, 1))
+        lens = PerspectiveLens()
+        lens.setFov(90, 90) 
+        lens.setNearFar(1, 75) 
+        self.spotLight_1.setLens(lens)
+        #self.spotLight_1.setShadowCaster(True, 1048, 1048)
+        self.spotNP = self.render.attachNewNode(self.spotLight_1)
+        self.spotNP.setPos(-66, 74, 17)
+        self.spotNP.lookAt(self.models_all[self.models_names_all.index('sci_models_pot_plant_1')]) 
+        self.render.setLight(self.spotNP)
+        #self.spotLight_1.showFrustum()
         
     def filter_lens_flare(self):
         # Threshold (x,y,z) and brightness (w) settings
