@@ -66,7 +66,7 @@ panda3d.core.load_prc_file_data("", """
 
 #loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "gl-version 3 2")
-#loadPrcFileData("", "notify-level-glgsg debug")       
+#loadPrcFileData("", "notify-level-glgsg debug")
 #loadPrcFileData("", "win-size 1920 1080")
 loadPrcFileData("", "win-size 1280 720")
 loadPrcFileData("", "fullscreen t")
@@ -1099,19 +1099,20 @@ class GameMain(ShowBase):
 
         if self.keyMap["move_forward"]:
             move.y += speed
-            self.player.start_walk()
-        elif self.keyMap["move_backward"]:
+        if self.keyMap["move_backward"]:
             move.y -= speed
-            self.player.start_walk()
-        elif self.keyMap["move_left"]:
+        if self.keyMap["move_left"]:
             move.x -= speed
-            self.player.start_walk()
-        elif self.keyMap["move_right"]:
+        if self.keyMap["move_right"]:
             move.x += speed
+
+        # Handle animation state: if any movement key is pressed, walk; otherwise, stop.
+        # (Checking if 'move' vector has changed from its initial zero state)
+        if self.player.health > 0 and (move.x != 0 or move.y != 0):
             self.player.start_walk()
         else:
             self.player.stop_walk()
-
+            
         if self.player.health>0:
             self.player.PlayerController.setLinearMovement(move, True)
         else:
@@ -1145,7 +1146,7 @@ class GameMain(ShowBase):
             
             # Optional: Stop any player physics/movement completely
             self.player.PlayerController.setLinearMovement(Vec3(0, 0, 0), True)
-            self.player.stop_walk()
+            #self.player.stop_walk()
             
         self.triggerNP_2.setPos(self.robot.model.getPos(self.render))
         self.bullet_world.doPhysics(dt, 10, 1.0/180.0)  # Substeps for stability
@@ -1322,7 +1323,7 @@ class GameMain(ShowBase):
             self.props.setCursorHidden(False)
             base.win.requestProperties(self.props)
 
-    def on_gui_box_button_click(self,status_flag):
+    def on_gui_box_button_click(self,status_flag): 
         if self.gui_box is not None:
             self.gui_box.destroy()
             self.gui_box = None
@@ -1666,7 +1667,7 @@ class GameMain(ShowBase):
         
         dialog_timings=[0,4,7,12,17,23] #seconds
         rn=random.randint(0,4)
-        self.sfx_all['robot_statement'].setTime(rn)
+        self.sfx_all['robot_statement'].setTime(dialog_timings[rn])
         Sequence(
         Func(self.sfx_all['robot_statement'].play),
         Wait(dialog_timings[rn+1]-dialog_timings[rn]),
