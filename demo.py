@@ -67,9 +67,10 @@ panda3d.core.load_prc_file_data("", """
 #loadPrcFileData("", "basic-shaders-only #t")
 #loadPrcFileData("", "gl-version 3 2")
 #loadPrcFileData("", "notify-level-glgsg debug")
-#loadPrcFileData("", "win-size 1920 1080")
-loadPrcFileData("", "win-size 1280 720")
-loadPrcFileData("", "fullscreen t")
+#loadPrcFileData("", "win-size 1280 720")
+#loadPrcFileData("", "fullscreen t")
+loadPrcFileData("", "win-size 800 600")
+loadPrcFileData("", "fullscreen f")
 loadPrcFileData("", "icon-filename sci_models/icon.ico")
 loadPrcFileData("", "window-title Project: Flora Guard")
 
@@ -1802,6 +1803,10 @@ class GameMain(ShowBase):
             self.robot.model.lookAt(self.player.PlayerMain)
         
         damage_value = 5+2*random.random()
+        # default punch anim
+        if dist>=4:
+            if self.keyMap['punch'] == True:
+                self.player.start_punch()
         # you punch enemy
         if (dist<4)&(random_1>=0.3):
             if self.keyMap['punch'] == True:
