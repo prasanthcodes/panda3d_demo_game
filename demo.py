@@ -1462,7 +1462,7 @@ class GameMain(ShowBase):
 
         self.dlight1.node().get_lens().set_film_size(250, 250)
         self.dlight1.node().get_lens().setNearFar(1, 150)
-        self.dlight1.node().show_frustum()
+        #self.dlight1.node().show_frustum()
         self.render.setLight(self.dlight1)
         self.filter_lens_flare()
         
