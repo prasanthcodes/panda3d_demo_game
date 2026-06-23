@@ -533,12 +533,12 @@ class Player():
         #model_path.setH(180)
         self.PlayerActor = Actor(model_path)
         self.PlayerActor.setScale(1.5)
-        self.PlayerActor.setPos(0,0,-1.8)
+        self.PlayerActor_initial_pos=(0,0,-1.8)
+        self.set_PlayerActor_initial_position()
         self.PlayerActor.setH(180)
         self.PlayerActor.pose('Walking', 0)
         self.PlayerMain = self.render.attachNewNode(self.PlayerController)
         self.world.attachCharacter(self.PlayerController)
-        #self.PlayerActor.setPos(0,0,1)
         self.PlayerActor.reparent_to(self.PlayerMain)
         
         self.first_person_view_NP = self.PlayerMain.attachNewNode('first_person_view')
@@ -562,6 +562,9 @@ class Player():
         
         self.health=100
         
+    def set_PlayerActor_initial_position(self):
+        self.PlayerActor.setPos(self.PlayerActor_initial_pos)
+        
     def toggle_camera_view(self):
         self.camera_view = (self.camera_view + 1) % 2
         if self.camera_view == 0:
@@ -570,14 +573,13 @@ class Player():
             self.camera.reparentTo(self.third_person_view_NP)
             
     def start_attack(self):
-        #self.PlayerActor.setPos(1,0.1,-1.8)
         self.player_anim_attack.play()
         self.sfx_all['attack'].play()
 
     def stop_attack(self):
         if self.player_anim_attack.isPlaying():
             self.player_anim_attack.stop()
-            self.PlayerActor.setPos(0,0,-1.8)
+            self.set_PlayerActor_initial_position()
 
     def start_punch(self):
         self.player_anim_boxing.play(0, 25)
@@ -588,7 +590,7 @@ class Player():
             self.player_anim_boxing.stop()
             
     def start_boxing(self):
-        self.PlayerActor.setPos(1,0.1,-1.8)
+        self.set_PlayerActor_initial_position()
         self.player_anim_attack.play()
         sound_sequence = Sequence(
             Func(self.sfx_all['boxing'].play),
@@ -600,13 +602,13 @@ class Player():
     def stop_boxing(self):
         if self.player_anim_boxing.isPlaying():
             self.player_anim_boxing.stop()
-            self.PlayerActor.setPos(0,0,-1.8)
+            self.set_PlayerActor_initial_position()
         
     def start_walk(self):
         if not self.player_anim_walking.isPlaying():
             if self.health>0:
                 self.player_anim_walking.loop(0)
-                self.PlayerActor.setPos(0,0,-1.8)
+                self.set_PlayerActor_initial_position()
                 self.sfx_all['player_walk'].setLoop(True)
                 self.sfx_all['player_walk'].play()
 
@@ -619,7 +621,7 @@ class Player():
         if not self.player_anim_walking.isPlaying():
             if self.health>0:
                 self.player_anim_walking.pose(0)
-                self.PlayerActor.setPos(0,0,-1.8)
+                self.set_PlayerActor_initial_position()
             
     def jump(self):
         if self.PlayerController.isOnGround():
