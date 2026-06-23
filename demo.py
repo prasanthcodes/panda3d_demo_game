@@ -1150,7 +1150,7 @@ class GameMain(ShowBase):
             #self.player.stop_walk()
             
         self.triggerNP_2.setPos(self.robot.model.getPos(self.render))
-        self.bullet_world.doPhysics(dt, 10, 1.0/180.0)  # Substeps for stability
+        self.bullet_world.doPhysics(dt, 1, 1.0/60.0)  # Substeps for stability
         #pos=self.PlayerMain.getPos()
         #self.bottom_cam_label.setText('ActorPos: %0.2f,%0.2f,%0.2f'%(pos[0],pos[1],pos[2]))
                 
