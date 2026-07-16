@@ -69,8 +69,8 @@ panda3d.core.load_prc_file_data("", """
 #loadPrcFileData("", "notify-level-glgsg debug")
 loadPrcFileData("", "win-size 1280 720")
 loadPrcFileData("", "fullscreen t")
-loadPrcFileData("", "win-size 800 600")
-loadPrcFileData("", "fullscreen f")
+#loadPrcFileData("", "win-size 800 600")
+#loadPrcFileData("", "fullscreen f")
 loadPrcFileData("", "icon-filename sci_models/icon.ico")
 loadPrcFileData("", "window-title Project: Flora Guard")
 
@@ -539,11 +539,7 @@ class Player():
         height=1.5
         playerShape = BulletCapsuleShape(radius, height, ZUp)
         self.PlayerController = BulletCharacterControllerNode(playerShape, 1, "PlayerMain")
-        #self.PlayerMain.setPos(self.spawn_point)
-        #self.world.attachCharacter(self.PlayerController)
         self.PlayerController.setJumpSpeed(2.0)
-        #self.PlayerController.setMaxSlope(60.0)
-        #self.PlayerController.setMaxJumpHeight(3.0)
         
         # --- load the player model and set collisions ---
         model_path = self.loader.loadModel('sci_models/astronaut.glb')
@@ -665,7 +661,7 @@ class Enemy():
         model_path = self.loader.loadModel('sci_models/robo_anim.glb')
         self.EnemyActor = Actor(model_path)
         self.EnemyActor.setScale(1.8)
-        #self.EnemyActor.setPos(1.934,64.853,-0.9)
+        self.EnemyActor_initial_pos=(0,0,0)
         self.EnemyActor.setH(180)
         self.model=self.render.attachNewNode('EnemyMain')
         self.EnemyActor.reparentTo(self.model)
@@ -686,22 +682,30 @@ class Enemy():
         self.robo_anim_running = self.EnemyActor.getAnimControl('Skill_03') #Running
         self.robo_anim_arise = self.EnemyActor.getAnimControl('Boxing_Practice') #Arise (getup from ground)
         
+    def set_EnemyActor_initial_position(self):
+        self.EnemyActor.setPos(self.EnemyActor_initial_pos)
+        
     def start_punch(self):
+        self.EnemyActor.setPos(1.5,-1,0)
         self.robo_anim_boxing.play()
 
     def stop_punch(self):
         if self.robo_anim_boxing.isPlaying():
             self.robo_anim_boxing.stop()
+            self.set_EnemyActor_initial_position()
             
     def start_attack(self):
+        self.EnemyActor.setPos(0,-2,0)
         self.robo_anim_attack.play()
 
     def stop_attack(self):
         if self.robo_anim_attack.isPlaying():
             self.robo_anim_attack.stop()
+            self.set_EnemyActor_initial_position()
 
     def start_walk(self):
         if not self.robo_anim_walking.isPlaying():
+            self.set_EnemyActor_initial_position()
             self.robo_anim_walking.loop(0)
             self.audio3d.attachSoundToObject(self.sfx_all['robot_walk'], self.model)
             self.audio3d.setDropOffFactor(0.3)
@@ -712,9 +716,11 @@ class Enemy():
         if self.robo_anim_walking.isPlaying():
             self.robo_anim_walking.stop()
             self.sfx_all['robot_walk'].stop()
+            self.set_EnemyActor_initial_position()
 
     def start_run(self):
         if not self.robo_anim_running.isPlaying():
+            self.set_EnemyActor_initial_position()
             self.robo_anim_running.loop(0)
             self.sfx_all['robot_running'].setLoop(True)
             self.sfx_all['robot_running'].setVolume(0.4)
@@ -731,7 +737,10 @@ class Enemy():
         #    self.die()
 
     def die(self):
-        self.model.stop()                 
+        self.stop_walk()
+        self.stop_attack()
+        self.stop_punch()
+        self.stop_run()
         self.robo_anim_dead.play()
         self.sfx_all['robot_dead'].play()
         sound_sequence = Sequence(
@@ -747,8 +756,8 @@ class HealthHUD():
         self.aspect2d = aspect2d
         self.taskMgr = taskMgr
         # Core Health Variables
-        self.max_health = max_health#100.0
-        self.current_health = current_health#100.0
+        self.max_health = max_health
+        self.current_health = current_health
         self.ghost_health = self.current_health
         self.ghost_speed = 50.0 # How fast the ghost bar catches up per second
         
@@ -1799,7 +1808,7 @@ class GameMain(ShowBase):
             if self.robot_walking:
                 speed = 6
                 self.robot.model.setPos( robot_pos + direction * speed * dt)
-                if dist>=50:
+                if dist>=50 and not self.changing_state:
                     if random.random()<0.01:
                         seq = Sequence(
                             Func(setattr, self, "robot_walking", False),
@@ -1809,6 +1818,7 @@ class GameMain(ShowBase):
                             Func(self.robot.stop_run),
                             Func(self.robot.start_walk),
                             Func(setattr, self, "robot_walking", True),
+                            Func(setattr, self, "changing_state", False),
                         ).start()
             else:
                 # running
@@ -1818,6 +1828,7 @@ class GameMain(ShowBase):
         random_1=random.random()
         random_2=random.random()
         
+        # to make robot always look at player
         self.look_at_heading(self.robot.model,self.player.PlayerMain.getPos())
         
         damage_value = 5+2*random.random()
