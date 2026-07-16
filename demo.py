@@ -69,8 +69,8 @@ panda3d.core.load_prc_file_data("", """
 #loadPrcFileData("", "notify-level-glgsg debug")
 loadPrcFileData("", "win-size 1280 720")
 loadPrcFileData("", "fullscreen t")
-#loadPrcFileData("", "win-size 800 600")
-#loadPrcFileData("", "fullscreen f")
+loadPrcFileData("", "win-size 800 600")
+loadPrcFileData("", "fullscreen f")
 loadPrcFileData("", "icon-filename sci_models/icon.ico")
 loadPrcFileData("", "window-title Project: Flora Guard")
 
@@ -259,17 +259,31 @@ class GameMenuSystem:
         self.settings_elements.append(sensitivity_label)
         
         self.sensitivity_entry = DirectEntry(
-            pos=(0.15, 0, 0.49),
+            pos=(-0.1, 0, 0.49),
             scale=0.05,
             numLines=1,
             focus=0,
             frameColor=(0.1, 0.1, 0.1, 0.75),
             text_fg=(1, 1, 1, 1),
-            width=5, 
+            width=4, 
             command=self.adjust_sensitivity
         )
         self.sensitivity_entry.set(str(self.app.mouse_sensitivity)) 
         self.settings_elements.append(self.sensitivity_entry)
+        
+        # --- INVERT MOUSE Y CHECKBOX (Positioned to the right of sensitivity) ---
+        self.invert_y_checkbox = DirectCheckButton(
+            text="Invert Y Axis",
+            scale=0.05,
+            pos=(0.35, 0, 0.49),
+            text_fg=(1, 1, 1, 1),
+            text_bg=(0.1, 0.1, 0.1, 0.75),
+            frameColor=(0.1, 0.1, 0.1, 0.75),
+            command=self.toggle_invert_y
+        )
+        # Assumes self.app.invert_y exists as a boolean variable
+        self.invert_y_checkbox['indicatorValue'] = self.app.invert_mouse_y
+        self.settings_elements.append(self.invert_y_checkbox)
         
         # --- BGM VOLUME SLIDER ---
         bgm_label = OnscreenText(text="BGM Volume:", pos=(-0.6, 0.35), scale=0.05, fg=(1, 1, 1, 1), align=TextNode.ALeft)
@@ -336,6 +350,9 @@ class GameMenuSystem:
             self.settings_elements.append(btn)
             self.bind_sounds(btn)
 
+    def toggle_invert_y(self, status):
+        self.app.invert_mouse_y = bool(status)
+        
     def adjust_sensitivity(self, text_entered):
         try:
             sens_value = float(text_entered)
@@ -472,7 +489,7 @@ class GameMenuSystem:
         about_info = (
             "Developed with Panda3D Engine\n\n"
             "Developer: Prasanth\n"
-            "Version: 3.0.0 (2026)\n\n"
+            "Version: 3.1.0 (2026)\n\n"
             "Thank you for playing."
         )
         
@@ -714,6 +731,7 @@ class Enemy():
         #    self.die()
 
     def die(self):
+        self.model.stop()                 
         self.robo_anim_dead.play()
         self.sfx_all['robot_dead'].play()
         sound_sequence = Sequence(
@@ -783,8 +801,8 @@ class HealthHUD():
         new_pos_x = self.start_x + new_scale_x
         
         # Apply transformations
-        self.health_bar.setScale(new_scale_x, 1, self.bar_height)
-        self.health_bar.setX(new_pos_x)
+        bar_element.setScale(new_scale_x, 1, self.bar_height)
+        bar_element.setX(new_pos_x)
 
     def update_ghost_bar(self, task):
         # Delta time ensures smooth tracking independent of framerate
@@ -820,8 +838,8 @@ class GameMain(ShowBase):
         
         # --- initializations ---
         self.FilterManager_1 = FilterManager(base.win, base.cam)
-        self.Filters=CommonFilters(base.win, base.cam)
-        self.pipeline = simplepbr.init(use_normal_maps=True)
+        #self.Filters=CommonFilters(base.win, base.cam)
+                                                         
         self.props = WindowProperties()
         self.props.setCursorHidden(False)
         self.win.requestProperties(self.props)
@@ -833,19 +851,20 @@ class GameMain(ShowBase):
         self.mouse_sensitivity=10
         self.bgm_volume=50
         self.sfx_volume=90
+        self.invert_mouse_y=False
         
         self.menu = GameMenuSystem(self,True)
 
     def start_game_world(self):
         """This function will execute the moment 'Start Game' is clicked."""
 
+        self.pipeline = simplepbr.init(use_normal_maps=True)                                                                         
         # --- hide mouse cursor ---
         self.props.setCursorHidden(True)
         self.win.requestProperties(self.props)
         
         # --- parameters ---
-        #self.mouse_sensitivity=10
-        self.move_speed=8#8
+        self.move_speed=8
 
         # --- set loading label at start---
         self.CenterLabel=DirectLabel(text='Loading...',pos=(0,0,0),scale=0.07,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0),frameColor=(0, 0, 0, 0))
@@ -867,8 +886,8 @@ class GameMain(ShowBase):
         self.camera.setPos(0,0,1)
         
         # --- initialize the bottom left label ---
-        self.bottom_cam_label=DirectLabel(text='',pos=(-1.3,1,-0.8),scale=0.05,text_align=TextNode.ALeft,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
-        self.bottom_cam_label.setText('Goto Robot')
+        self.bottom_left_label=DirectLabel(text='',pos=(-1.3,1,-0.8),scale=0.05,text_align=TextNode.ALeft,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
+        self.bottom_left_label.setText('Goto Robot')
         
         # --- initialize the bottom right label ---
         self.bottom_right_label=DirectLabel(text='',pos=(1,1,-0.7),scale=0.05,text_align=TextNode.ACenter,text_fg=(1, 1, 1, 0.8),text_bg=(0,0,0,0.2),frameColor=(0, 0, 0, 0.1))
@@ -895,10 +914,7 @@ class GameMain(ShowBase):
         self.set_cubemap()
         
         # --- add tasks ---
-        taskMgr.add(self.actor_rotate, "camera_rotateTask")
-        #taskMgr.add(self.actor_move, "camera_move")
-        #taskMgr.add(self.initial_loading_tasks, "initial_loading_tasks")
-        #taskMgr.add(self.general_tasks, "general_tasks")
+        taskMgr.add(self.camera_rotate, "camera_rotateTask")
         self.taskMgr.add(self.update, "update")
         self.taskMgr.add(self.run_event_1, "event_1_task")
         
@@ -943,7 +959,6 @@ class GameMain(ShowBase):
         self.actor_sat.setScale(5)
         self.sat_anim_1 = self.actor_sat.getAnimControl('Action')
         self.sat_anim_1.loop(0)
-        
         
         # --- load game sounds ---
         self.event_1_started=False
@@ -1024,6 +1039,8 @@ class GameMain(ShowBase):
         self.game_is_running=True
         self.you_win=False
         self.robot_walking = True
+        # Track if the robot is currently in the middle of transitioning states
+        self.changing_state = False
         
         pass
 
@@ -1050,7 +1067,7 @@ class GameMain(ShowBase):
         self.game_is_running=False
     
     def resume_game_world(self):
-        taskMgr.add(self.actor_rotate, "camera_rotateTask")
+        taskMgr.add(self.camera_rotate, "camera_rotateTask")
         self.props.setCursorHidden(True)
         self.win.requestProperties(self.props)
 
@@ -1154,7 +1171,7 @@ class GameMain(ShowBase):
         self.triggerNP_2.setPos(self.robot.model.getPos(self.render))
         self.bullet_world.doPhysics(dt, 1, 1.0/60.0)  # Substeps for stability
         #pos=self.PlayerMain.getPos()
-        #self.bottom_cam_label.setText('ActorPos: %0.2f,%0.2f,%0.2f'%(pos[0],pos[1],pos[2]))
+        #self.bottom_left_label.setText('ActorPos: %0.2f,%0.2f,%0.2f'%(pos[0],pos[1],pos[2]))
                 
         return task.cont  
 
@@ -1260,6 +1277,23 @@ class GameMain(ShowBase):
         taskMgr.remove(task_name)
         taskMgr.add(update_look, task_name)
     
+    def look_at_heading(self, node, target_pos):
+        """
+        Instantly rotate a node toward a world position, affecting ONLY the Heading.
+        
+        Args:
+            node       : NodePath to rotate
+            target_pos : Point3 target world position
+        """
+        # Calculate the direction vector
+        dir_vec = target_pos - node.getPos(self.render)
+
+        # Calculate heading (Y forward in Panda3D) using arc tangent
+        target_h = math.degrees(math.atan2(-dir_vec.x, dir_vec.y))
+
+        # Instantly apply only the heading in world space
+        node.setH(self.render, target_h)
+        
     def set_cubemap(self):
 
         # The options when loading the texture, in this case, does not make any sense, just for demonstration.
@@ -1331,7 +1365,7 @@ class GameMain(ShowBase):
             self.gui_box.destroy()
             self.gui_box = None
             if self.game_is_running:
-                taskMgr.add(self.actor_rotate, "camera_rotateTask")
+                taskMgr.add(self.camera_rotate, "camera_rotateTask")
                 self.props.setCursorHidden(True)
                 base.win.requestProperties(self.props)
             if status_flag:
@@ -1378,7 +1412,7 @@ class GameMain(ShowBase):
 
     def set_keymap(self):
         self.keyMap = {"move_forward": 0, "move_backward": 0, "move_left": 0, "move_right": 0,"gravity_on":1,
-        "right_click":0,"punch":0,"Start":0,"space_key":0,"camera_view":0,"take_screenshot":0}
+        "space_key":0,"camera_view":0,"take_screenshot":0,"toggle_fps_metter":0}
         self.accept('escape', self.handle_escape_press)
         self.accept("w", self.setKey, ["move_forward", True])
         self.accept("s", self.setKey, ["move_backward", True])
@@ -1389,16 +1423,14 @@ class GameMain(ShowBase):
         self.accept("a-up", self.setKey, ["move_left", False])
         self.accept("d-up", self.setKey, ["move_right", False])
         #self.accept("g", self.setKey, ["gravity_on", None])
-        self.accept("mouse3", self.setKey, ["right_click", True])
-        self.accept("mouse3-up", self.setKey, ["right_click", False])
         self.accept("f", self.setKey, ["punch", True])
         self.accept("f-up", self.setKey, ["punch", False])
         self.accept("c", self.setKey, ["attack", True])
-        self.accept("c-up", self.setKey, ["attack", False]) 
-        self.accept("g", self.setKey, ["Start", True]) 
+        self.accept("c-up", self.setKey, ["attack", False])
         self.accept("space", self.setKey, ["space_key", True])
         self.accept("v", self.setKey, ["camera_view", True])
-        self.accept("x", self.setKey, ["take_screenshot", True])   
+        self.accept("x", self.setKey, ["take_screenshot", True])
+        self.accept("f3", self.setKey, ["toggle_fps_metter", True])
         
     # Records the state of the keys
     def setKey(self, key, value):
@@ -1412,7 +1444,7 @@ class GameMain(ShowBase):
                 self.event1_seq.finish()
                 self.event_1_finished=True
                 taskMgr.remove("typing_task")
-                self.bottom_cam_label.setText('')
+                self.bottom_left_label.setText('')
                 self.bottom_right_label.setText('')
             self.keyMap[key] = False
             
@@ -1426,13 +1458,15 @@ class GameMain(ShowBase):
             else:
                 self.keyMap[key] = False
                 #self.player.stop_attack() 
-                
         elif key=="camera_view":
             self.player.toggle_camera_view()
             self.keyMap[key] = not self.keyMap[key]
         elif key=="take_screenshot":
             self.take_screenshot()
             self.keyMap[key]=False
+        elif key=="toggle_fps_metter":
+            self.keyMap[key] = not self.keyMap[key]
+            base.setFrameRateMeter(self.keyMap[key])                                                    
         else:
             self.keyMap[key] = value
             
@@ -1445,7 +1479,7 @@ class GameMain(ShowBase):
         self.directionalLight_intensity=3
         self.directionalLight.setColor((self.directionalLight_intensity,self.directionalLight_intensity,self.directionalLight_intensity, 1))
         #self.directionalLight.setSpecularColor((.1, .1, .1, .1))
-        #self.directionalLight.setShadowCaster(True, 1024, 1024)
+        self.directionalLight.setShadowCaster(True, 1024, 1024)
         self.dlight1=self.render.attachNewNode(self.directionalLight)
         self.dlight1.setHpr(0, -45, 0)
         self.dlight1.setPos(0,0,20)
@@ -1518,12 +1552,9 @@ class GameMain(ShowBase):
         finalquad.setShader(Shader.load("sci_models/lens_flare.sha"))
         finalquad.setShaderInput("tex1", tex1)
         finalquad.setShaderInput("tex2", tex2)
-        finalquad.setShaderInput("tex3", tex3)
-        #lf_settings = Vec3(lf_samples, lf_halo_width, lf_flare_dispersal)
-        #finalquad.setShaderInput("lf_settings", lf_settings)
-        #finalquad.setShaderInput("lf_chroma_distort", lf_chroma_distort)                                              
+        finalquad.setShaderInput("tex3", tex3)                                            
 
-    def actor_rotate(self,task):
+    def camera_rotate(self,task):
         # Check to make sure the mouse is readable
         if self.mouseWatcherNode.hasMouse():
             #if self.keyMap['right_click']==True:
@@ -1537,6 +1568,9 @@ class GameMain(ShowBase):
             dx = mx - int(self.win.getXSize() / 2)
             dy = my - int(self.win.getYSize() / 2)
 
+            if self.invert_mouse_y == True:
+                dy = -dy
+                
             # Update camera angles based on mouse movement
             self.cameraAngleH -= dx * self.mouse_sensitivity * globalClock.getDt()
             self.cameraAngleP -= dy * self.mouse_sensitivity * globalClock.getDt()
@@ -1554,7 +1588,7 @@ class GameMain(ShowBase):
 
     def start_camera_rotateTask(self):
             if self.game_is_running:
-                taskMgr.add(self.actor_rotate, "camera_rotateTask")
+                taskMgr.add(self.camera_rotate, "camera_rotateTask")
 
     def stop_camera_rotateTask(self):
             if self.game_is_running:
@@ -1562,54 +1596,47 @@ class GameMain(ShowBase):
                 
     def run_event_1(self,task):
     
-        event_flag=0
-        overlapping = self.triggerNode_2.getOverlappingNodes()
-        for node in overlapping:
-            if node==self.player.PlayerController:
-                event_flag=1
-                
-        if not event_flag==1: return Task.cont
-        
+        if self.player.PlayerController not in self.triggerNode_2.getOverlappingNodes():
+            return Task.cont
+
         taskMgr.remove("event_1_task")
         
         # disable controls
-        self.ignoreAll()
-
+        self.ignore("w")
+        self.ignore("s")
+        self.ignore("w-up")
+        self.ignore("s-up")
+        self.ignore("a")
+        self.ignore("d")
+        self.ignore("a-up")
+        self.ignore("d-up")
+        
         for key in ['move_forward', 'move_backward', 'move_left', 'move_right']:
             self.keyMap[key] = False
 
-        self.accept('escape', self.handle_escape_press)
         self.stop_camera_rotateTask()
         self.reset_mouse()
 
-        # sounds
-        #self.mySound1.stop()
-        #self.mySound2.setLoop(True)
-        #self.mySound2.play()
-        
         self.bottom_right_label.setText('press space to skip')
-        self.accept("space", self.setKey, ["space_key", True]) 
         
         # main cinematic sequence
         self.event1_seq = Sequence(
             Wait(1),
             Func(self.player_look_at_smooth, self.player.PlayerMain,self.robot.model.getPos(),1),
-            #Func(self.player.PlayerMain.lookAt, (1.934,57,self.player.PlayerMain.getZ())),
             LerpPosInterval(self.player.PlayerMain,1,(1.934,57,self.player.PlayerMain.getZ())),
             Func(self.player_look_at_smooth, self.player.PlayerMain,LPoint3f(self.robot.model.getX(),self.robot.model.getY(),self.robot.model.getZ()+1),1),
             
             Wait(1),
-            Func(self.start_typing_effect,self.bottom_cam_label,self.dialogue_text,0.03),
+            Func(self.start_typing_effect,self.bottom_left_label,self.dialogue_text,0.03),
             
             Wait(8),
             Func(setattr, self, "event_1_finished", True),
             Func(self.set_keymap),
             Func(self.reset_mouse),
             Func(self.start_camera_rotateTask),
-            Func(self.bottom_cam_label.setText,''),
+            Func(self.bottom_left_label.setText,''),
             Func(self.bottom_right_label.setText,''),
             Func(self.run_event_2),
-            
         )
         
         self.event_1_started=True
@@ -1622,7 +1649,7 @@ class GameMain(ShowBase):
             Wait(0.5),
             Func(self.look_at_smooth, self.robot.model,pot_plant.getPos(),1),
             Func(self.robot.start_walk),
-            Func(self.bottom_cam_label.setText,'stop the robot from destroying the plant.'),
+            Func(self.bottom_left_label.setText,'stop the robot from destroying the plant.'),
             LerpPosInterval(self.robot.model,35,(pot_plant.getX(),pot_plant.getY(),self.robot.model.getZ())),
             Func(self.robot.start_attack),
             Wait(2),
@@ -1632,18 +1659,14 @@ class GameMain(ShowBase):
         self.event2_seq.start()
         
     def run_event_3(self):
-        event_flag=0
-        overlapping = self.triggerNode_2.getOverlappingNodes()
-        for node in overlapping:
-            if node==self.player.PlayerController:
-                event_flag=1
-                self.event_3_finished=True#to prevent rerun of this event
-                
-        if not event_flag==1: return
-        
+        if self.player.PlayerController in self.triggerNode_2.getOverlappingNodes():              
+            self.event_3_finished = True  # to prevent rerun of this event
+        else:
+            return
+
         self.event2_seq.pause()
         self.event3_seq = Sequence(
-        Func(self.bottom_cam_label.setText,''),
+        Func(self.bottom_left_label.setText,''),
         Func(self.bottom_right_label.setText,''),
         Func(self.robot.stop_walk),
         Wait(0.5),
@@ -1757,6 +1780,7 @@ class GameMain(ShowBase):
 
         robot_pos = self.robot.model.getPos()
         player_pos = self.player.PlayerMain.getPos()
+        dt = globalClock.getDt()                        
         current_time = globalClock.getFrameTime()
 
         # direction vector
@@ -1773,8 +1797,8 @@ class GameMain(ShowBase):
         # move the robot
         if dist>=1:
             if self.robot_walking:
-                speed = 0.1
-                self.robot.model.setPos( robot_pos + direction * speed )
+                speed = 6
+                self.robot.model.setPos( robot_pos + direction * speed * dt)
                 if dist>=50:
                     if random.random()<0.01:
                         seq = Sequence(
@@ -1788,21 +1812,13 @@ class GameMain(ShowBase):
                         ).start()
             else:
                 # running
-                speed = 0.13
-                self.robot.model.setPos( robot_pos + direction * speed )
+                speed = 9
+                self.robot.model.setPos( robot_pos + direction * speed * dt)
 
         random_1=random.random()
         random_2=random.random()
         
-        # to avoid the robot skewing when lookat the player 
-        if 6 < dist < 7:
-            self.saved_hpr = self.robot.model.getHpr()
-        if dist<6:
-            hpr=self.robot.model.getHpr()
-            self.robot.model.setHpr(hpr[0],self.saved_hpr[1],self.saved_hpr[2])
-        else:
-            # look at player
-            self.robot.model.lookAt(self.player.PlayerMain)
+        self.look_at_heading(self.robot.model,self.player.PlayerMain.getPos())
         
         damage_value = 5+2*random.random()
         # default punch anim

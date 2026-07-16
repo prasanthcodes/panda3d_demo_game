@@ -17,6 +17,7 @@ f - punch
 v - switch camera view
 space - jump, skip cut scene
 x - screenshot
+f3 - toggle the framerate meter
 Esc - return to main menu
 
 
