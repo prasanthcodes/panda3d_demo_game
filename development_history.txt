@@ -1,0 +1,18 @@
+
+version 3.1
+
+bugs fixed
+
+* HUD ghost bar now works
+* invert y axis option added in settings
+* deltatime calculation added to all movements
+* deltatime calculation removed from camera_rotate function
+* robot punch animation position adjusted for good visibility
+* shadows enabled. (it is mistakely disabled previously)
+* when robot comes near the player, it skews. 'look_at_heading' function added to correct it.
+* frame rate meter now shows when click f3 key
+* getProperties().getForeground() added in camera_rotate function to prevent capturing/centering the mouse when alt-tabbed
+* Added _first_person_init flag in camera_rotate function. On the first iteration, it centers the mouse and skips applying deltas, preventing camera snapping upon game load.
+If your game switches between modes (e.g., entering a pause menu, opening inventory, or switching to third-person/cutscenes), reset _first_person_init back to False whenever you re-enable first-person control
+
+

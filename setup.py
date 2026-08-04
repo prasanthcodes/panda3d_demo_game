@@ -63,6 +63,7 @@ setup(
             "platforms": [
                 "win_amd64",
                 # 'manylinux1_x86_64', 
+                # 'manylinux2014_aarch64',
                 # 'macosx_10_6_x86_64',
             ],
         }
