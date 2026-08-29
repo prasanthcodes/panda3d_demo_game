@@ -1,3 +1,8 @@
+version 3.2
+
+* new robot with animations fixed
+* robot walk sound plays even after it destroys the plant and stopped walking. bug fixed.
+
 
 version 3.1
 

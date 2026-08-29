@@ -489,7 +489,7 @@ class GameMenuSystem:
         about_info = (
             "Developed with Panda3D Engine\n\n"
             "Developer: Prasanth\n"
-            "Version: 3.1.0 (2026)\n\n"
+            "Version: 3.2.0 (2026)\n\n"
             "Thank you for playing."
         )
         
@@ -660,7 +660,7 @@ class Enemy():
         
         model_path = self.loader.loadModel('sci_models/robo_anim.glb')
         self.EnemyActor = Actor(model_path)
-        self.EnemyActor.setScale(1.8)
+        self.EnemyActor.setScale(5)
         self.EnemyActor_initial_pos=(0,0,0)
         self.EnemyActor.setH(180)
         self.model=self.render.attachNewNode('EnemyMain')
@@ -673,14 +673,14 @@ class Enemy():
         self.speed = 2
 
         # animations
-        self.robo_anim_attack = self.EnemyActor.getAnimControl('Arise') #(one hand slice attack with rotation)
-        self.robo_anim_dead = self.EnemyActor.getAnimControl('Skill_01') #dead
-        self.robo_anim_angry = self.EnemyActor.getAnimControl('Walking') #(get angry, can also used as laughing)
-        self.robo_anim_walking = self.EnemyActor.getAnimControl('BeHit_FlyUp') #Walking
-        self.robo_anim_boxing = self.EnemyActor.getAnimControl('Running') #Boxing_Practice
-        self.robo_anim_behit = self.EnemyActor.getAnimControl('Dead') #BeHit_FlyUp
-        self.robo_anim_running = self.EnemyActor.getAnimControl('Skill_03') #Running
-        self.robo_anim_arise = self.EnemyActor.getAnimControl('Boxing_Practice') #Arise (getup from ground)
+        self.robo_anim_attack = self.EnemyActor.getAnimControl('Attack')
+        self.robo_anim_dead = self.EnemyActor.getAnimControl('Dead')
+        self.robo_anim_angry = self.EnemyActor.getAnimControl('Angry') #(get angry, can also used as laughing)
+        self.robo_anim_walking = self.EnemyActor.getAnimControl('Walking') 
+        self.robo_anim_boxing = self.EnemyActor.getAnimControl('Boxing_Practice')
+        self.robo_anim_behit = self.EnemyActor.getAnimControl('BeHit_FlyUp')
+        self.robo_anim_running = self.EnemyActor.getAnimControl('Running')
+        self.robo_anim_arise = self.EnemyActor.getAnimControl('Arise')
         
     def set_EnemyActor_initial_position(self):
         self.EnemyActor.setPos(self.EnemyActor_initial_pos)
@@ -715,8 +715,9 @@ class Enemy():
     def stop_walk(self):
         if self.robo_anim_walking.isPlaying():
             self.robo_anim_walking.stop()
-            self.sfx_all['robot_walk'].stop()
-            self.set_EnemyActor_initial_position()
+        self.sfx_all['robot_walk'].stop()
+        self.audio3d.detachSound(self.sfx_all['robot_walk'])
+        self.set_EnemyActor_initial_position()
 
     def start_run(self):
         if not self.robo_anim_running.isPlaying():
