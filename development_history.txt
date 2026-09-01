@@ -1,7 +1,8 @@
 version 3.2
 
-* new robot with animations fixed
+* new robot with animations fixed.
 * robot walk sound plays even after it destroys the plant and stopped walking. bug fixed.
+* astronaut's emission texture changed to good.
 
 
 version 3.1
