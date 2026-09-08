@@ -49,7 +49,7 @@ panda3d.core.load_prc_file_data("", """
     
     # As an optimization, set this to the maximum number of cameras
     # or lights that will be rendering the terrain at any given time.
-    stm-max-views 1
+    stm-max-views 8
 
     # Further optimize the performance by reducing this to the max
     # number of chunks that will be visible at any given time.
@@ -68,10 +68,14 @@ panda3d.core.load_prc_file_data("", """
 #loadPrcFileData("", "gl-version 3 2")
 #loadPrcFileData("", "notify-level-glgsg debug")
 loadPrcFileData("", "win-size 1280 720")
-loadPrcFileData("", "fullscreen t")
+if sys.platform == 'darwin':
+    loadPrcFileData("", "fullscreen f")
+else:
+    loadPrcFileData("", "fullscreen t")
 #loadPrcFileData("", "win-size 800 600")
 #loadPrcFileData("", "fullscreen f")
-loadPrcFileData("", "icon-filename sci_models/icon.ico")
+if sys.platform == 'win32':
+    loadPrcFileData("", "icon-filename sci_models/icon.ico")
 loadPrcFileData("", "window-title Project: Flora Guard")
 
 # Redirect all stdout and stderr to a log file
@@ -386,7 +390,22 @@ class GameMenuSystem:
         width, height = map(int, self.current_resolution.split(" x "))
         props = WindowProperties()
         props.setSize(width, height)
-        props.setFullscreen(self.is_fullscreen)
+        if self.is_fullscreen:
+            if sys.platform == 'darwin':
+                # Mac-specific borderless fullscreen workaround
+                pipe = self.app.win.getPipe()
+                props.setUndecorated(True)
+                props.setSize(pipe.getDisplayWidth(), pipe.getDisplayHeight())
+                props.setOrigin(0, 0)
+                props.setFullscreen(False)
+            else:
+                # Standard native fullscreen for Windows/Linux
+                props.setFullscreen(True)
+        else:
+            props.setFullscreen(False)
+            if sys.platform == 'darwin':
+                props.setUndecorated(False)
+                
         self.app.win.requestProperties(props)
         
         # 2. Halt settings display access interaction 

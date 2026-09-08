@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="Project_FloraGuard",
-    version="3.0.0",
+    version="3.2.0",
     options={
         "build_apps": {
             'requirements_path': 'requirements.txt',
@@ -45,14 +45,18 @@ setup(
             ],
             
             "include_modules": [
-                'panda3d-gltf',
+                "panda3d",
+                "direct",
+                "panda3d-gltf",
                 #"numpy",
                 #"numpy.*",
             ],
             # Engine Plugins
             "plugins": [
-                "pandagl",         
-                "p3openal_audio", 
+                "pandagl",
+                "p3display",
+                "p3openal_audio",
+                "p3tinydisplay",  # Add this fallback software renderer
             ],
             
             #'use_optimized_wheels': False,
@@ -64,7 +68,7 @@ setup(
                 "win_amd64",
                 # 'manylinux1_x86_64', 
                 # 'manylinux2014_aarch64',
-                # 'macosx_10_6_x86_64',
+                # 'macosx_10_9_x86_64',
             ],
         }
     }
